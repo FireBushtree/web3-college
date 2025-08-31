@@ -1,0 +1,22 @@
+{
+  "jsc": {
+    "parser": {
+      "syntax": "typescript",
+      "jsx": true,
+      "decorators": false,
+      "dynamicImport": true
+    },
+    "transform": {
+      "react": {
+        "runtime": "automatic",
+        "development": true,
+        "importSource": "react"
+      }
+    },
+    "target": "es2017"
+  },
+  "module": {
+    "type": "es6"
+  },
+  "sourceMaps": true
+}
