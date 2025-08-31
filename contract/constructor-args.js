@@ -1,1 +1,1 @@
-module.exports = [ "Hello World123"];
+module.exports = [];
