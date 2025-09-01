@@ -68,7 +68,7 @@ export const api = {
   async getCourses() {
     try {
       const response = await apiClient.get('/courses')
-      return response.data
+      return response.data?.data || []
     }
     catch (error) {
       console.error('Get courses API failed:', error)

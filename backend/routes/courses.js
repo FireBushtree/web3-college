@@ -33,7 +33,15 @@ router.get('/', async (ctx) => {
     const db = getDatabase();
     const courseModel = new Course(db);
     
-    const courses = await courseModel.findAll();
+    const { idList } = ctx.query;
+    let courses;
+    
+    if (idList) {
+      const ids = Array.isArray(idList) ? idList : idList.split(',');
+      courses = await courseModel.findByIds(ids);
+    } else {
+      courses = await courseModel.findAll();
+    }
     
     ctx.status = 200;
     ctx.body = {
