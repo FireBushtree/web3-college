@@ -15,8 +15,8 @@ contract OWCToken is ERC20, Ownable {
     function buyTokens() external payable {
         require(msg.value > 0, "Send ETH to buy tokens");
         uint256 tokenAmount = msg.value * rate;
-        require(balanceOf(address(this)) >= tokenAmount, "Not enough tokens");
-        _transfer(address(this), msg.sender, tokenAmount);
+        require(balanceOf(owner()) >= tokenAmount, "Not enough tokens");
+        _transfer(owner(), msg.sender, tokenAmount);
     }
 
     function sellTokens(uint256 tokenAmount) external {
@@ -36,6 +36,12 @@ contract OWCToken is ERC20, Ownable {
 
     function burn(uint256 amount) public {
         _burn(msg.sender, amount);
+    }
+
+    function withdrawETH() external onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No ETH to withdraw");
+        payable(owner()).transfer(balance);
     }
 
     function burnFrom(address account, uint256 amount) public {

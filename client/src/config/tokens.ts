@@ -1,7 +1,7 @@
 import { localhost, mainnet, sepolia } from 'wagmi/chains'
 
 export const OWC_TOKEN_ADDRESSES = {
-  [localhost.id]: '0x0aC59E0181418D1b73058729b6d187697f73AEd8',
+  [localhost.id]: '0xd00f0340E18Ceaa9089a7A1D0947b024D6927801',
   [sepolia.id]: '0x1234567890123456789012345678901234567890',
   [mainnet.id]: '0x1234567890123456789012345678901234567890',
 } as const

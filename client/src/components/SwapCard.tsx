@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { formatUnits } from 'viem'
-import { useAccount, useBalance, useChainId } from 'wagmi'
+import { formatUnits, parseEther } from 'viem'
+import { useAccount, useBalance, useChainId, useReadContract, useWriteContract } from 'wagmi'
+import OWCTokenABI from '@/assets/OWCToken.json'
 import { OWC_TOKEN_ADDRESSES, OWC_TOKEN_DECIMALS } from '@/config/tokens'
 
 interface Token {
@@ -86,6 +87,16 @@ export default function SwapCard() {
     token: OWC_TOKEN_ADDRESSES[chainId as keyof typeof OWC_TOKEN_ADDRESSES],
   })
 
+  const owcTokenAddress = OWC_TOKEN_ADDRESSES[chainId as keyof typeof OWC_TOKEN_ADDRESSES]
+
+  const { data: contractRate } = useReadContract({
+    address: owcTokenAddress as `0x${string}`,
+    abi: OWCTokenABI.abi,
+    functionName: 'rate',
+  })
+
+  const { writeContract, isPending: isSwapping } = useWriteContract()
+
   const handleSwapTokens = () => {
     setFromToken(toToken)
     setToToken(fromToken)
@@ -102,17 +113,59 @@ export default function SwapCard() {
 
   const handleFromAmountChange = (value: string) => {
     setFromAmount(value)
-    // Simple 1:1 mock rate for demo
-    setToAmount(value)
+    if (value && !Number.isNaN(Number.parseFloat(value))) {
+      if (fromToken === ETH) {
+        // ETH to OWC: use contract rate or fallback to 5000
+        const rate = contractRate ? Number(contractRate) : 5000
+        const owcAmount = (Number.parseFloat(value) * rate).toString()
+        setToAmount(owcAmount)
+      }
+      else {
+        // OWC to ETH: reverse calculation
+        const rate = contractRate ? Number(contractRate) : 5000
+        const ethAmount = (Number.parseFloat(value) / rate).toFixed(6)
+        setToAmount(ethAmount)
+      }
+    }
+    else {
+      setToAmount('')
+    }
   }
 
   const handleSwap = () => {
     if (!isConnected) {
-      // TODO: Show connect wallet modal
-
+      console.error('Wallet not connected')
+      return
     }
-    // TODO: Implement actual swap logic
-    // Swapping logic will be implemented here
+
+    if (!fromAmount || Number.parseFloat(fromAmount) <= 0) {
+      console.error('Invalid amount:', fromAmount)
+      return
+    }
+
+    if (!owcTokenAddress) {
+      console.error('OWC token address not found for chain:', chainId)
+      return
+    }
+
+    try {
+      if (fromToken === ETH) {
+        // Buy OWC tokens with ETH
+        writeContract({
+          address: owcTokenAddress as `0x${string}`,
+          abi: OWCTokenABI.abi,
+          functionName: 'buyTokens',
+          value: parseEther(fromAmount),
+        })
+      }
+      else {
+        // TODO: Implement OWC to ETH swap (sellTokens)
+        console.warn('OWC to ETH swap not implemented yet')
+      }
+    }
+    catch (error) {
+      console.error('Swap transaction failed:', error)
+    }
   }
 
   return (
@@ -135,7 +188,7 @@ export default function SwapCard() {
             <button
               type="button"
               onClick={handleSwapTokens}
-              className="bg-gray-800 hover:bg-gray-700 border-4 border-gray-900/50 rounded-xl p-2 transition-all duration-200 hover:rotate-180"
+              className="cursor-pointer bg-gray-800 hover:bg-gray-700 border-4 border-gray-900/50 rounded-xl p-2 transition-all duration-200 hover:rotate-180"
             >
               <svg
                 className="w-4 h-4 text-gray-400"
@@ -168,10 +221,23 @@ export default function SwapCard() {
                 <button
                   type="button"
                   onClick={handleSwap}
-                  disabled={!fromAmount || Number.parseFloat(fromAmount) <= 0}
-                  className="w-full bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                  disabled={!fromAmount || Number.parseFloat(fromAmount) <= 0 || isSwapping}
+                  className="cursor-pointer w-full bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                 >
-                  {!fromAmount || Number.parseFloat(fromAmount) <= 0 ? 'Enter an amount' : 'Swap'}
+                  {isSwapping
+                    ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                          Swapping...
+                        </div>
+                      )
+                    : !fromAmount || Number.parseFloat(fromAmount) <= 0
+                        ? (
+                            'Enter an amount'
+                          )
+                        : (
+                            `Swap ${fromToken.symbol} for ${toToken.symbol}`
+                          )}
                 </button>
               )}
         </div>
