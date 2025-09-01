@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
-import { useAccount, useChainId, useReadContract } from 'wagmi'
+import { parseEther } from 'viem'
+import { useAccount, useChainId, useReadContract, useWriteContract } from 'wagmi'
 import CourseRegistryABI from '@/assets/CourseRegistry.json'
-import { COURSE_REGISTRY_ADDRESSES } from '@/config/tokens'
+import OWCTokenABI from '@/assets/OWCToken.json'
+import { COURSE_REGISTRY_ADDRESSES, OWC_TOKEN_ADDRESSES } from '@/config/tokens'
 import { api } from '@/utils/api'
 
 interface Course {
@@ -19,6 +21,10 @@ function CourseCard({ course }: { course: Course }) {
   const { address, isConnected } = useAccount()
   const chainId = useChainId()
   const registryAddress = COURSE_REGISTRY_ADDRESSES[chainId as keyof typeof COURSE_REGISTRY_ADDRESSES]
+  const owcTokenAddress = OWC_TOKEN_ADDRESSES[chainId as keyof typeof OWC_TOKEN_ADDRESSES]
+
+  const [isApproving, setIsApproving] = useState(false)
+  const [isPurchasing, setIsPurchasing] = useState(false)
 
   // 检查用户是否已购买该课程
   const { data: hasPurchased } = useReadContract({
@@ -31,9 +37,60 @@ function CourseCard({ course }: { course: Course }) {
     },
   })
 
+  // 检查用户对课程注册合约的OWC授权额度
+  const { data: allowance, refetch: refetchAllowance } = useReadContract({
+    address: owcTokenAddress as `0x${string}`,
+    abi: OWCTokenABI.abi,
+    functionName: 'allowance',
+    args: [address, registryAddress],
+  })
+
+  // 批准合约调用
+  const { writeContract: approveToken } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        setIsApproving(false)
+        refetchAllowance()
+      },
+      onError: () => {
+        setIsApproving(false)
+      },
+    },
+  })
+
+  // 购买课程合约调用
+  const { writeContract: purchaseCourse } = useWriteContract({
+    mutation: {
+      onSuccess: () => {
+        setIsPurchasing(false)
+      },
+      onError: () => {
+        setIsPurchasing(false)
+      },
+    },
+  })
+
+  const coursePrice = parseEther(course.price.toString())
+  const hasEnoughAllowance = allowance && BigInt(allowance.toString()) >= coursePrice
+
+  const handleApprove = () => {
+    setIsApproving(true)
+    approveToken({
+      address: owcTokenAddress as `0x${string}`,
+      abi: OWCTokenABI.abi,
+      functionName: 'approve',
+      args: [registryAddress, coursePrice],
+    })
+  }
+
   const handlePurchase = () => {
-    // TODO: 实现购买逻辑
-    console.warn('Purchase course:', course.name)
+    setIsPurchasing(true)
+    purchaseCourse({
+      address: registryAddress as `0x${string}`,
+      abi: CourseRegistryABI.abi,
+      functionName: 'purchaseCourse',
+      args: [course.name],
+    })
   }
 
   return (
@@ -45,17 +102,19 @@ function CourseCard({ course }: { course: Course }) {
       </div>
 
       {/* 课程信息 */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-gradient-to-r from-pink-400 to-violet-400 rounded-full flex items-center justify-center">
-            <span className="text-xs font-bold text-white">
-              {course.creator.slice(2, 4).toUpperCase()}
-            </span>
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
           <span className="text-gray-400 text-sm">
-            {course.creator.slice(0, 6)}
-            ...
-            {course.creator.slice(-4)}
+            {new Date(course.createdAt).toLocaleDateString('zh-CN', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
           </span>
         </div>
         <div className="flex items-center gap-1">
@@ -68,30 +127,51 @@ function CourseCard({ course }: { course: Course }) {
 
       {/* 购买状态和按钮 */}
       <div className="flex items-center justify-between">
-        <div className="text-sm">
-          {hasPurchased
-            ? (
-                <span className="inline-flex items-center gap-1 text-green-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Purchased
-                </span>
-              )
-            : (
-                <span className="text-gray-500">Not purchased</span>
-              )}
-        </div>
-
-        {!hasPurchased && (
-          <button
-            onClick={handlePurchase}
-            disabled={!isConnected}
-            className="cursor-pointer bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all duration-200"
-          >
-            {isConnected ? 'Purchase' : 'Connect Wallet'}
-          </button>
-        )}
+        {hasPurchased
+          ? (
+              <span className="inline-flex items-center gap-1 text-green-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Purchased
+              </span>
+            )
+          : (
+              <>
+                {!hasEnoughAllowance && (
+                  <button
+                    onClick={handleApprove}
+                    disabled={!isConnected || isApproving}
+                    className="bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all duration-200"
+                  >
+                    {isApproving
+                      ? (
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                            Approving
+                          </div>
+                        )
+                      : 'Approve'}
+                  </button>
+                )}
+                <button
+                  onClick={handlePurchase}
+                  disabled={!isConnected || !hasEnoughAllowance || isPurchasing}
+                  className="bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all duration-200"
+                >
+                  {isPurchasing
+                    ? (
+                        <div className="flex items-center gap-1">
+                          <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                          Purchasing
+                        </div>
+                      )
+                    : !isConnected
+                        ? 'Connect Wallet'
+                        : 'Purchase'}
+                </button>
+              </>
+            )}
       </div>
     </div>
   )
