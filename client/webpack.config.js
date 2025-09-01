@@ -8,7 +8,9 @@ export default (env, argv) => {
   const isProd = argv.mode === 'production'
 
   return {
-    cache: false,
+    cache: {
+      type: 'filesystem',
+    },
     entry: './src/main.tsx',
     output: {
       publicPath: '/',
@@ -16,10 +18,10 @@ export default (env, argv) => {
       path: path.resolve(__dirname, 'dist'),
     },
     devServer: {
-      historyApiFallback: {
-      },
+      historyApiFallback: {},
       port: 8080,
       hot: true,
+      compress: true,
     },
     plugins: [
       new HtmlWebpackPlugin({
