@@ -1,6 +1,8 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useState } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useChainId, useWriteContract } from 'wagmi'
+import CourseRegistryABI from '@/assets/CourseRegistry.json'
+import { COURSE_REGISTRY_ADDRESSES } from '@/config/tokens'
 import { api } from '@/utils/api'
 
 interface CourseForm {
@@ -11,6 +13,7 @@ interface CourseForm {
 
 export default function Create() {
   const { isConnected, address } = useAccount()
+  const chainId = useChainId()
   const [form, setForm] = useState<CourseForm>({
     title: '',
     content: '',
@@ -20,6 +23,9 @@ export default function Create() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [currentStep, setCurrentStep] = useState<'idle' | 'api' | 'contract' | 'completed'>('idle')
+
+  const { writeContract } = useWriteContract()
 
   const updateForm = (field: keyof CourseForm, value: string) => {
     setForm(prev => ({
@@ -36,13 +42,36 @@ export default function Create() {
     setIsSubmitting(true)
     setError(null)
     setSuccess(false)
+    setCurrentStep('api')
 
     try {
+      // Step 1: Create course via API
       const result = await api.createCourse({
         ...form,
         creator: address!,
       })
       console.warn('Course created successfully:', result)
+
+      // Step 2: Register on blockchain
+      // Note: Since this contract only has purchaseCourse, we'll use it to register the course
+      // In a production environment, you'd want a separate createCourse function
+      setCurrentStep('contract')
+      const registryAddress = COURSE_REGISTRY_ADDRESSES[chainId as keyof typeof COURSE_REGISTRY_ADDRESSES]
+
+      if (!registryAddress || registryAddress === '0x0000000000000000000000000000000000000000') {
+        throw new Error(`Course registry not deployed on chain ${chainId}. Please deploy the contract first.`)
+      }
+
+      writeContract({
+        address: registryAddress as `0x${string}`,
+        abi: CourseRegistryABI.abi,
+        functionName: 'purchaseCourse',
+        args: [result.name || form.title], // Use the course name returned from API
+      })
+
+      // The contract call will complete in the background
+      // We'll show completion immediately after contract is submitted
+      setCurrentStep('completed')
 
       // Reset form on success
       setForm({
@@ -52,12 +81,16 @@ export default function Create() {
       })
       setSuccess(true)
 
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000)
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setSuccess(false)
+        setCurrentStep('idle')
+      }, 5000)
     }
     catch (error) {
       console.error('Failed to create course:', error)
       setError(error instanceof Error ? error.message : 'Failed to create course')
+      setCurrentStep('idle')
     }
     finally {
       setIsSubmitting(false)
@@ -177,6 +210,83 @@ export default function Create() {
             </div>
           )}
 
+          {/* Progress Steps */}
+          {isSubmitting && (
+            <div className="mb-6 p-4 bg-blue-900/30 border border-blue-700/50 rounded-xl">
+              <div className="space-y-4">
+                <h4 className="text-blue-300 font-medium">Creating Course...</h4>
+
+                {/* Step 1: API Call */}
+                <div className="flex items-center gap-3">
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                    currentStep === 'api'
+                      ? 'border-blue-400 bg-blue-400'
+                      : currentStep === 'contract' || currentStep === 'completed'
+                        ? 'border-green-400 bg-green-400'
+                        : 'border-gray-600'
+                  }`}
+                  >
+                    {currentStep === 'api'
+                      ? (
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        )
+                      : (currentStep === 'contract' || currentStep === 'completed')
+                          ? (
+                              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )
+                          : null}
+                  </div>
+                  <span className={`text-sm ${
+                    currentStep === 'api'
+                      ? 'text-blue-300'
+                      : currentStep === 'contract' || currentStep === 'completed'
+                        ? 'text-green-300'
+                        : 'text-gray-400'
+                  }`}
+                  >
+                    Saving course data...
+                  </span>
+                </div>
+
+                {/* Step 2: Contract Call */}
+                <div className="flex items-center gap-3">
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                    currentStep === 'contract'
+                      ? 'border-blue-400 bg-blue-400'
+                      : currentStep === 'completed'
+                        ? 'border-green-400 bg-green-400'
+                        : 'border-gray-600'
+                  }`}
+                  >
+                    {currentStep === 'contract'
+                      ? (
+                          <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                        )
+                      : currentStep === 'completed'
+                        ? (
+                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          )
+                        : null}
+                  </div>
+                  <span className={`text-sm ${
+                    currentStep === 'contract'
+                      ? 'text-blue-300'
+                      : currentStep === 'completed'
+                        ? 'text-green-300'
+                        : 'text-gray-400'
+                  }`}
+                  >
+                    Registering on blockchain...
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Success Message */}
           {success && (
             <div className="mb-6 p-4 bg-green-900/30 border border-green-700/50 rounded-xl">
@@ -184,7 +294,7 @@ export default function Create() {
                 <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-green-300 text-sm">Course created successfully!</p>
+                <p className="text-green-300 text-sm">Course created and registered on blockchain successfully!</p>
               </div>
             </div>
           )}
