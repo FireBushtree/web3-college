@@ -41,7 +41,7 @@ function CourseCard({ course }: { course: Course }) {
       {/* 课程标题 */}
       <div className="mb-4">
         <h3 className="text-xl font-bold text-white mb-2">{course.name}</h3>
-        <p className="text-gray-400 text-sm line-clamp-3">{course.description}</p>
+        <p className="text-gray-400 text-sm line-clamp-2 h-10 leading-5">{course.description}</p>
       </div>
 
       {/* 课程信息 */}
@@ -87,7 +87,7 @@ function CourseCard({ course }: { course: Course }) {
           <button
             onClick={handlePurchase}
             disabled={!isConnected}
-            className="bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all duration-200"
+            className="cursor-pointer bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all duration-200"
           >
             {isConnected ? 'Purchase' : 'Connect Wallet'}
           </button>
