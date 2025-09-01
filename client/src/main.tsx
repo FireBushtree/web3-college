@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router'
 import { WagmiProvider } from 'wagmi'
+import Layout from '@/components/Layout'
 import Create from '@/pages/Create'
 import Detail from '@/pages/Detail'
 import Home from '@/pages/Home'
@@ -17,11 +18,13 @@ createRoot(container).render(
     <QueryClientProvider client={queryClient}>
       <RainbowKitProvider>
         <BrowserRouter>
-          <Routes>
-            <Route index element={<Home />} />
-            <Route index element={<Create />} />
-            <Route path="/course/:id" element={<Detail />} />
-          </Routes>
+          <Layout>
+            <Routes>
+              <Route index element={<Home />} />
+              <Route path="/create" element={<Create />} />
+              <Route path="/course/:id" element={<Detail />} />
+            </Routes>
+          </Layout>
         </BrowserRouter>
       </RainbowKitProvider>
     </QueryClientProvider>
