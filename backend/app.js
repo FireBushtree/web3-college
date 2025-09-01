@@ -8,8 +8,7 @@ const app = new Koa();
 app.use(bodyParser());
 
 const apiRouter = new (require('koa-router'))({ prefix: '/api' });
-apiRouter.use(courseRoutes.routes());
-apiRouter.use(courseRoutes.allowedMethods());
+apiRouter.use('/courses', courseRoutes.routes(), courseRoutes.allowedMethods());
 
 app.use(apiRouter.routes());
 app.use(apiRouter.allowedMethods());

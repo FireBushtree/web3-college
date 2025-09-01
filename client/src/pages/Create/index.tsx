@@ -1,6 +1,7 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useState } from 'react'
 import { useAccount } from 'wagmi'
+import { api } from '@/utils/api'
 
 interface CourseForm {
   title: string
@@ -9,12 +10,16 @@ interface CourseForm {
 }
 
 export default function Create() {
-  const { isConnected } = useAccount()
+  const { isConnected, address } = useAccount()
   const [form, setForm] = useState<CourseForm>({
     title: '',
     content: '',
     price: '',
   })
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   const updateForm = (field: keyof CourseForm, value: string) => {
     setForm(prev => ({
@@ -23,13 +28,40 @@ export default function Create() {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isConnected)
+    if (!isConnected || isSubmitting)
       return
 
-    console.warn('Creating course:', form)
-    // TODO: Implement course creation logic
+    setIsSubmitting(true)
+    setError(null)
+    setSuccess(false)
+
+    try {
+      const result = await api.createCourse({
+        ...form,
+        creator: address!,
+      })
+      console.warn('Course created successfully:', result)
+
+      // Reset form on success
+      setForm({
+        title: '',
+        content: '',
+        price: '',
+      })
+      setSuccess(true)
+
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(false), 3000)
+    }
+    catch (error) {
+      console.error('Failed to create course:', error)
+      setError(error instanceof Error ? error.message : 'Failed to create course')
+    }
+    finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -133,13 +165,50 @@ export default function Create() {
             </div>
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-900/30 border border-red-700/50 rounded-xl">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.312 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                <p className="text-red-300 text-sm">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <div className="mb-6 p-4 bg-green-900/30 border border-green-700/50 rounded-xl">
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-green-300 text-sm">Course created successfully!</p>
+              </div>
+            </div>
+          )}
+
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!isConnected || !form.title || !form.content || !form.price}
+            disabled={!isConnected || !form.title || !form.content || !form.price || isSubmitting}
             className="w-full bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
           >
-            {!isConnected ? 'Connect Wallet First' : 'Create Course'}
+            {isSubmitting
+              ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                    Creating Course...
+                  </div>
+                )
+              : !isConnected
+                  ? (
+                      'Connect Wallet First'
+                    )
+                  : (
+                      'Create Course'
+                    )}
           </button>
         </form>
       </div>
