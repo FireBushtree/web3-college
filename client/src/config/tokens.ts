@@ -15,4 +15,4 @@ export const COURSE_REGISTRY_ADDRESSES = {
   [mainnet.id]: '0x0000000000000000000000000000000000000000',
 } as const
 
-export const OWC_TOKEN_DECIMALS = 18
+export const OWC_TOKEN_DECIMALS = 0

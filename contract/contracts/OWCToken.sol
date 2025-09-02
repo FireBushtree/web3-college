@@ -19,7 +19,9 @@ contract OWCToken is ERC20, Ownable {
 
     function buyTokens() external payable {
         require(msg.value > 0, "Send ETH to buy tokens");
-        uint256 tokenAmount = msg.value * rate;
+        // Convert Wei to ETH first, then multiply by rate
+        // msg.value is in wei, rate is tokens per ETH
+        uint256 tokenAmount = (msg.value * rate) / 1e18;
         require(balanceOf(owner()) >= tokenAmount, "Not enough tokens");
         _transfer(owner(), msg.sender, tokenAmount);
     }

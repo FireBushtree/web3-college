@@ -15190,12 +15190,12 @@
     "5777": {
       "events": {},
       "links": {},
-      "address": "0xc4F92Fd79E6544ECd7950EC1BcCca42aFDCa33f0",
-      "transactionHash": "0xc67cfaeedf53c797ebfdad9201633497b9e932bc26c91e94e0c9f7de198d16e2"
+      "address": "0x89f3c6765B205525E8474C3A015A48e9d06E17fb",
+      "transactionHash": "0x94bf073611897d25e15d8ed4c9cd874428c9f29691cf561861ad66713ef1f069"
     }
   },
   "schemaVersion": "3.4.16",
-  "updatedAt": "2025-09-02T03:33:40.254Z",
+  "updatedAt": "2025-09-02T05:30:40.027Z",
   "networkType": "ethereum",
   "devdoc": {
     "kind": "dev",
