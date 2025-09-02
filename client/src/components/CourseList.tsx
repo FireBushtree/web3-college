@@ -32,9 +32,6 @@ function CourseCard({ course }: { course: Course }) {
     abi: CourseRegistryABI.abi,
     functionName: 'hasPurchased',
     args: [course.name, address],
-    query: {
-      enabled: isConnected && !!address && !!registryAddress && registryAddress !== '0x0000000000000000000000000000000000000000',
-    },
   })
 
   // 检查用户对课程注册合约的OWC授权额度
