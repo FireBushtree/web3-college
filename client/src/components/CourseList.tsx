@@ -7,7 +7,7 @@ import { COURSE_REGISTRY_ADDRESSES, OWC_TOKEN_ADDRESSES } from '@/config/tokens'
 import { api } from '@/utils/api'
 
 interface Course {
-  id: number
+  _id: number
   name: string
   description: string
   price: number
@@ -31,7 +31,7 @@ function CourseCard({ course }: { course: Course }) {
     address: registryAddress as `0x${string}`,
     abi: CourseRegistryABI.abi,
     functionName: 'hasPurchased',
-    args: [course.name, address],
+    args: [course._id, address],
   })
 
   // 检查用户对课程注册合约的OWC授权额度
@@ -284,7 +284,7 @@ export default function CourseList() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {courses.map(course => (
-          <CourseCard key={course.id} course={course} />
+          <CourseCard key={course._id} course={course} />
         ))}
       </div>
     </div>

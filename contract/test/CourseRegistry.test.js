@@ -53,6 +53,10 @@ contract("CourseRegistry", function (accounts) {
       const students = await courseRegistry.getCourseStudents(courseName);
       assert.equal(students.length, 1, "Course should have one student (the creator)");
       assert.equal(students[0], teacher, "First student should be the course creator");
+
+      // Check course creator is set correctly
+      const creator = await courseRegistry.getCourseCreator(courseName);
+      assert.equal(creator, teacher, "Course creator should be set correctly");
     });
 
     it("Should revert when creating course with zero price", async function () {
@@ -94,7 +98,8 @@ contract("CourseRegistry", function (accounts) {
     });
 
     it("Should allow student to purchase a course", async function () {
-      const initialBalance = await owcToken.balanceOf(student1);
+      const initialStudentBalance = await owcToken.balanceOf(student1);
+      const initialTeacherBalance = await owcToken.balanceOf(teacher);
 
       const tx = await courseRegistry.purchaseCourse(courseName, { from: student1 });
 
@@ -104,14 +109,19 @@ contract("CourseRegistry", function (accounts) {
       assert.equal(tx.logs[0].args.student, student1, "Event should have correct student");
       assert.equal(tx.logs[0].args.price.toString(), coursePrice.toString(), "Event should have correct price");
 
-      // Check token transfer
-      const finalBalance = await owcToken.balanceOf(student1);
-      const balanceDecrease = initialBalance.sub(finalBalance);
-      assert.equal(balanceDecrease.toString(), coursePrice.toString(), "Student should lose correct token amount");
+      // Check token transfer from student
+      const finalStudentBalance = await owcToken.balanceOf(student1);
+      const studentBalanceDecrease = initialStudentBalance.sub(finalStudentBalance);
+      assert.equal(studentBalanceDecrease.toString(), coursePrice.toString(), "Student should lose correct token amount");
 
-      // Check contract received tokens
+      // Check teacher received tokens
+      const finalTeacherBalance = await owcToken.balanceOf(teacher);
+      const teacherBalanceIncrease = finalTeacherBalance.sub(initialTeacherBalance);
+      assert.equal(teacherBalanceIncrease.toString(), coursePrice.toString(), "Teacher should receive tokens");
+
+      // Check contract did not receive tokens
       const contractBalance = await owcToken.balanceOf(courseRegistry.address);
-      assert.equal(contractBalance.toString(), coursePrice.toString(), "Contract should receive tokens");
+      assert.equal(contractBalance.toString(), "0", "Contract should not receive tokens");
 
       // Check student added to course
       const students = await courseRegistry.getCourseStudents(courseName);
@@ -124,6 +134,8 @@ contract("CourseRegistry", function (accounts) {
     });
 
     it("Should allow multiple students to purchase the same course", async function () {
+      const initialTeacherBalance = await owcToken.balanceOf(teacher);
+      
       // Student1 purchases
       await courseRegistry.purchaseCourse(courseName, { from: student1 });
 
@@ -134,6 +146,12 @@ contract("CourseRegistry", function (accounts) {
       assert.equal(students.length, 3, "Course should have 3 students (creator + 2 purchasers)");
       assert.equal(students[1], student1, "Second student should be student1");
       assert.equal(students[2], student2, "Third student should be student2");
+
+      // Check teacher received tokens from both purchases
+      const finalTeacherBalance = await owcToken.balanceOf(teacher);
+      const teacherBalanceIncrease = finalTeacherBalance.sub(initialTeacherBalance);
+      const expectedIncrease = coursePrice.mul(web3.utils.toBN("2")); // 2 purchases
+      assert.equal(teacherBalanceIncrease.toString(), expectedIncrease.toString(), "Teacher should receive tokens from both purchases");
 
       // Check both students are marked as having purchased
       const student1HasPurchased = await courseRegistry.hasPurchased(courseName, student1);

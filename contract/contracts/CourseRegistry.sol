@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract CourseRegistry {
     struct Course {
         uint256 price;
+        address creator;
         address[] students;
     }
 
@@ -24,6 +25,7 @@ contract CourseRegistry {
         require(courses[courseName].price == 0, "Course already exists");
 
         courses[courseName].price = price;
+        courses[courseName].creator = msg.sender;
         courses[courseName].students.push(msg.sender);
 
         emit CourseCreated(courseName, msg.sender, price);
@@ -34,7 +36,7 @@ contract CourseRegistry {
         require(course.price > 0, "Course does not exist");
         require(owcToken.balanceOf(msg.sender) >= course.price, "Insufficient OWC balance");
 
-        owcToken.transferFrom(msg.sender, address(this), course.price);
+        owcToken.transferFrom(msg.sender, course.creator, course.price);
         course.students.push(msg.sender);
         emit CoursePurchased(courseName, msg.sender, course.price);
     }
@@ -55,5 +57,9 @@ contract CourseRegistry {
 
     function getCoursePrice(string memory courseName) external view returns (uint256) {
         return courses[courseName].price;
+    }
+
+    function getCourseCreator(string memory courseName) external view returns (address) {
+        return courses[courseName].creator;
     }
 }
