@@ -35,8 +35,11 @@ contract CourseRegistry {
         Course storage course = courses[courseName];
         require(course.price > 0, "Course does not exist");
         require(owcToken.balanceOf(msg.sender) >= course.price, "Insufficient OWC balance");
+        require(owcToken.allowance(msg.sender, address(this)) >= course.price, "Insufficient allowance");
 
-        owcToken.transferFrom(msg.sender, course.creator, course.price);
+        bool success = owcToken.transferFrom(msg.sender, course.creator, course.price);
+        require(success, "Token transfer failed");
+        
         course.students.push(msg.sender);
         emit CoursePurchased(courseName, msg.sender, course.price);
     }

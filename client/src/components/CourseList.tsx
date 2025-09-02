@@ -86,7 +86,7 @@ function CourseCard({ course }: { course: Course }) {
       address: registryAddress as `0x${string}`,
       abi: CourseRegistryABI.abi,
       functionName: 'purchaseCourse',
-      args: [course.name],
+      args: [course._id],
     })
   }
 
@@ -126,6 +126,7 @@ function CourseCard({ course }: { course: Course }) {
       <div className="flex items-center justify-between">
         {hasPurchased
           ? (
+            // 状态4：已购买 - 只显示Purchased
               <span className="inline-flex items-center gap-1 text-green-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -133,18 +134,36 @@ function CourseCard({ course }: { course: Course }) {
                 Purchased
               </span>
             )
-          : (
-              <div className="flex items-center gap-3 w-full">
-                {hasEnoughAllowance === true && (
-                  <span className="inline-flex items-center gap-1 text-blue-400">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Approved
-                  </span>
-                )}
-                <div className="flex gap-2 ml-auto">
-                  {!hasEnoughAllowance && (
+          : isPurchasing
+            ? (
+                // 状态3：购买中 - 显示Purchasing状态
+                <span className="inline-flex items-center gap-1 text-orange-400">
+                  <div className="w-4 h-4 border-2 border-orange-400/30 border-t-orange-400 rounded-full animate-spin" />
+                  Purchasing
+                </span>
+              )
+            : hasEnoughAllowance
+              ? (
+            // 状态2：已批准 - 左侧Approved，右侧Purchase按钮
+                  <>
+                    <span className="inline-flex items-center gap-1 text-blue-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Approved
+                    </span>
+                    <button
+                      onClick={handlePurchase}
+                      disabled={!isConnected}
+                      className="cursor-pointer bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all duration-200"
+                    >
+                      Purchase
+                    </button>
+                  </>
+                )
+              : (
+            // 状态1：未批准 - 两个按钮左右展示
+                  <>
                     <button
                       onClick={handleApprove}
                       disabled={!isConnected || isApproving}
@@ -157,28 +176,21 @@ function CourseCard({ course }: { course: Course }) {
                               Approving
                             </div>
                           )
-                        : 'Approve'}
+                        : (
+                            'Approve'
+                          )}
                     </button>
-                  )}
-                  <button
-                    onClick={handlePurchase}
-                    disabled={!isConnected || !hasEnoughAllowance || isPurchasing}
-                    className="cursor-pointer bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all duration-200"
-                  >
-                    {isPurchasing
-                      ? (
-                          <div className="flex items-center gap-1">
-                            <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                            Purchasing
-                          </div>
-                        )
-                      : !isConnected
-                          ? 'Connect Wallet'
-                          : 'Purchase'}
-                  </button>
-                </div>
-              </div>
-            )}
+                    <button
+                      onClick={handlePurchase}
+                      disabled={!isConnected || !hasEnoughAllowance}
+                      className="cursor-pointer bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all duration-200"
+                    >
+                      {!isConnected
+                        ? 'Connect Wallet'
+                        : 'Purchase'}
+                    </button>
+                  </>
+                )}
       </div>
     </div>
   )
