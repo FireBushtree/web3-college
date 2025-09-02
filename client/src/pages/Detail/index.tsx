@@ -191,8 +191,8 @@ function CourseDetailHeader({ course }: { course: Course }) {
                     </div>
                   )}
         </div>
-        
-        {hasPurchased && (
+
+        {hasPurchased === true && (
           <button
             onClick={handleComplete}
             disabled={isCompleting}
