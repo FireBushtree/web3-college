@@ -1,4 +1,6 @@
+import type { BaseSyntheticEvent } from 'react'
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { useAccount, useChainId, useReadContract, useWriteContract } from 'wagmi'
 import CourseRegistryABI from '@/assets/CourseRegistry.json'
 import OWCTokenABI from '@/assets/OWCToken.json'
@@ -21,6 +23,7 @@ function CourseCard({ course }: { course: Course }) {
   const chainId = useChainId()
   const registryAddress = COURSE_REGISTRY_ADDRESSES[chainId as keyof typeof COURSE_REGISTRY_ADDRESSES]
   const owcTokenAddress = OWC_TOKEN_ADDRESSES[chainId as keyof typeof OWC_TOKEN_ADDRESSES]
+  const navigation = useNavigate()
 
   const [isApproving, setIsApproving] = useState(false)
   const [isPurchasing, setIsPurchasing] = useState(false)
@@ -69,7 +72,9 @@ function CourseCard({ course }: { course: Course }) {
   const coursePrice = course.price
   const hasEnoughAllowance = allowance && BigInt(allowance.toString()) >= coursePrice
 
-  const handleApprove = () => {
+  const handleApprove = (e: BaseSyntheticEvent) => {
+    e.stopPropagation()
+
     setIsApproving(true)
     approveToken({
       address: owcTokenAddress as `0x${string}`,
@@ -79,7 +84,9 @@ function CourseCard({ course }: { course: Course }) {
     })
   }
 
-  const handlePurchase = () => {
+  const handlePurchase = (e: BaseSyntheticEvent) => {
+    e.stopPropagation()
+
     setIsPurchasing(true)
     purchaseCourse({
       address: registryAddress as `0x${string}`,
@@ -90,7 +97,12 @@ function CourseCard({ course }: { course: Course }) {
   }
 
   return (
-    <div className="bg-gray-900/50 backdrop-blur-xl border border-gray-800/50 rounded-2xl p-6 shadow-2xl hover:border-gray-700/50 transition-colors">
+    <div
+      className="bg-gray-900/50 backdrop-blur-xl border border-gray-800/50 rounded-2xl p-6 shadow-2xl hover:border-gray-700/50 transition-colors"
+      onClick={() => {
+        navigation(`/course/${course._id}`)
+      }}
+    >
       {/* 课程标题 */}
       <div className="mb-4">
         <h3 className="text-xl font-bold text-white mb-2">{course.name}</h3>

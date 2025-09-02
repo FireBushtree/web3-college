@@ -75,4 +75,15 @@ export const api = {
       throw error
     }
   },
+
+  async getCourse(id: string) {
+    try {
+      const response = await apiClient.get(`/courses/${id}`)
+      return response.data?.data
+    }
+    catch (error) {
+      console.error('Get course API failed:', error)
+      throw error
+    }
+  },
 }

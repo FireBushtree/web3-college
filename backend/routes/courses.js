@@ -102,4 +102,35 @@ router.put('/:id/disable', async (ctx) => {
   }
 });
 
+router.get('/:id', async (ctx) => {
+  try {
+    const db = getDatabase();
+    const courseModel = new Course(db);
+    
+    const course = await courseModel.findById(ctx.params.id);
+    
+    if (!course) {
+      ctx.status = 404;
+      ctx.body = {
+        success: false,
+        message: '课程不存在'
+      };
+      return;
+    }
+    
+    ctx.status = 200;
+    ctx.body = {
+      success: true,
+      message: '获取课程详情成功',
+      data: course
+    };
+  } catch (error) {
+    ctx.status = 400;
+    ctx.body = {
+      success: false,
+      message: error.message
+    };
+  }
+});
+
 module.exports = router;
