@@ -87,7 +87,7 @@ export default function Create() {
         address: registryAddress as `0x${string}`,
         abi: CourseRegistryABI.abi,
         functionName: 'createCourse',
-        args: [result.name || form.title, form.price], // Use the course name returned from API
+        args: [result.data._id, form.price], // Use the course name returned from API
       })
 
       // The contract call will complete in the background

@@ -31,6 +31,7 @@ contract CourseRegistry {
 
     function purchaseCourse(string memory courseName) external {
         Course storage course = courses[courseName];
+        require(course.price > 0, "Course does not exist");
         require(owcToken.balanceOf(msg.sender) >= course.price, "Insufficient OWC balance");
 
         owcToken.transferFrom(msg.sender, address(this), course.price);
@@ -50,5 +51,9 @@ contract CourseRegistry {
             }
         }
         return false;
+    }
+
+    function getCoursePrice(string memory courseName) external view returns (uint256) {
+        return courses[courseName].price;
     }
 }
