@@ -12,6 +12,11 @@ contract OWCToken is ERC20, Ownable {
         _mint(msg.sender, 1000000 * 10**decimals());
     }
 
+    // 重写 decimals 函数，使用 0 位小数（整数代币）
+    function decimals() public view virtual override returns (uint8) {
+        return 0;
+    }
+
     function buyTokens() external payable {
         require(msg.value > 0, "Send ETH to buy tokens");
         uint256 tokenAmount = msg.value * rate;

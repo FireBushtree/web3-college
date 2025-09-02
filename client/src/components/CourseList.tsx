@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { parseEther } from 'viem'
 import { useAccount, useChainId, useReadContract, useWriteContract } from 'wagmi'
 import CourseRegistryABI from '@/assets/CourseRegistry.json'
 import OWCTokenABI from '@/assets/OWCToken.json'
@@ -67,7 +66,7 @@ function CourseCard({ course }: { course: Course }) {
     },
   })
 
-  const coursePrice = parseEther(course.price.toString())
+  const coursePrice = course.price
   const hasEnoughAllowance = allowance && BigInt(allowance.toString()) >= coursePrice
 
   const handleApprove = () => {
