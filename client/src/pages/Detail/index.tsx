@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useAccount, useChainId, useReadContract, useWriteContract } from 'wagmi'
+import { useAccount, useChainId, useReadContract, useWaitForTransactionReceipt, useWriteContract } from 'wagmi'
 import CourseRegistryABI from '@/assets/CourseRegistry.json'
 import OWCTokenABI from '@/assets/OWCToken.json'
 import { COURSE_REGISTRY_ADDRESSES, OWC_TOKEN_ADDRESSES } from '@/config/tokens'
@@ -24,7 +24,6 @@ function CourseDetailHeader({ course }: { course: Course }) {
 
   const [isApproving, setIsApproving] = useState(false)
   const [isPurchasing, setIsPurchasing] = useState(false)
-  const [isCompleting, setIsCompleting] = useState(false)
 
   const { data: hasPurchased } = useReadContract({
     address: registryAddress as `0x${string}`,
@@ -38,6 +37,13 @@ function CourseDetailHeader({ course }: { course: Course }) {
     abi: OWCTokenABI.abi,
     functionName: 'allowance',
     args: [address, registryAddress],
+  })
+
+  const { data: hasCourseCompleted } = useReadContract({
+    address: registryAddress as `0x${string}`,
+    abi: CourseRegistryABI.abi,
+    functionName: 'hasCourseCompleted',
+    args: [course._id, address],
   })
 
   const { writeContract: approveToken } = useWriteContract({
@@ -61,6 +67,15 @@ function CourseDetailHeader({ course }: { course: Course }) {
         setIsPurchasing(false)
       },
     },
+  })
+
+  const { writeContract: completeCourse, data: hash, isPending } = useWriteContract({
+    mutation: {
+    },
+  })
+
+  const { isLoading } = useWaitForTransactionReceipt({
+    hash,
   })
 
   const coursePrice = course.price
@@ -87,10 +102,12 @@ function CourseDetailHeader({ course }: { course: Course }) {
   }
 
   const handleComplete = () => {
-    setIsCompleting(true)
-    setTimeout(() => {
-      setIsCompleting(false)
-    }, 2000)
+    completeCourse({
+      address: registryAddress,
+      abi: CourseRegistryABI.abi,
+      functionName: 'completeCourse',
+      args: [course._id],
+    })
   }
 
   return (
@@ -133,7 +150,7 @@ function CourseDetailHeader({ course }: { course: Course }) {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Purchased
+                  { hasCourseCompleted ? 'Completed' : 'Purchased' }
                 </span>
               )
             : isPurchasing
@@ -192,13 +209,13 @@ function CourseDetailHeader({ course }: { course: Course }) {
                   )}
         </div>
 
-        {hasPurchased === true && (
+        {hasPurchased === true && !hasCourseCompleted && (
           <button
             onClick={handleComplete}
-            disabled={isCompleting}
+            disabled={isPending || isLoading}
             className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200"
           >
-            {isCompleting
+            {isPending || isLoading
               ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
