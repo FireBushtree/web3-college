@@ -13,7 +13,7 @@ contract CourseRegistry is Ownable {
 
     IERC20 public owcToken;
     mapping(string => Course) public courses;
-    
+
     // 奖励池相关
     uint256 public rewardPool;  // 合约内的奖励池余额
     uint256 public constant COMPLETION_REWARD = 50;  // 完成课程奖励 50 OWC
@@ -50,7 +50,7 @@ contract CourseRegistry is Ownable {
 
         bool success = owcToken.transferFrom(msg.sender, course.creator, course.price);
         require(success, "Token transfer failed");
-        
+
         course.students.push(msg.sender);
         emit CoursePurchased(courseName, msg.sender, course.price);
     }
@@ -111,10 +111,10 @@ contract CourseRegistry is Ownable {
 
         // 标记课程为已完成
         courseCompleted[courseName][msg.sender] = true;
-        
+
         // 更新学生总奖励记录
         totalRewardsEarned[msg.sender] += COMPLETION_REWARD;
-        
+
         // 从奖励池转移代币给学生
         rewardPool -= COMPLETION_REWARD;
         bool success = owcToken.transfer(msg.sender, COMPLETION_REWARD);
@@ -150,7 +150,7 @@ contract CourseRegistry is Ownable {
     function getCompletedStudents(string memory courseName) external view returns (address[] memory) {
         Course storage course = courses[courseName];
         address[] memory students = course.students;
-        
+
         // 计算已完成的学生数量
         uint256 completedCount = 0;
         for (uint i = 0; i < students.length; i++) {
@@ -158,7 +158,7 @@ contract CourseRegistry is Ownable {
                 completedCount++;
             }
         }
-        
+
         // 创建已完成学生数组
         address[] memory completedStudents = new address[](completedCount);
         uint256 index = 0;
@@ -168,7 +168,7 @@ contract CourseRegistry is Ownable {
                 index++;
             }
         }
-        
+
         return completedStudents;
     }
 }
