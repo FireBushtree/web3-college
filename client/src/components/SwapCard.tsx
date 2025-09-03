@@ -21,7 +21,7 @@ const ETH: Token = {
 const OWC: Token = {
   symbol: 'OWC',
   name: 'OWC Token',
-  address: OWC_TOKEN_ADDRESSES[1337],
+  address: OWC_TOKEN_ADDRESSES[11_155_111],
   decimals: OWC_TOKEN_DECIMALS,
 }
 
