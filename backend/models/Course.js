@@ -51,6 +51,10 @@ class Course {
     }
   }
 
+  async findByCreator(creator) {
+    return await this.collection.find({ creator }).toArray();
+  }
+
   async updateEnabled(id, enabled) {
     try {
       const result = await this.collection.updateOne(

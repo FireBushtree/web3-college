@@ -38,6 +38,7 @@ function Navigation() {
   const navItems = [
     { name: 'Home', path: '/', current: location.pathname === '/' },
     { name: 'Course', path: '/create', current: location.pathname === '/create' },
+    { name: 'Profile', path: '/profile', current: location.pathname === '/profile' },
   ]
 
   return (

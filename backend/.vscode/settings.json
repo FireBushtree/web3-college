@@ -1,0 +1,16 @@
+{
+  "files.exclude": {
+    "node_modules": true,
+    "**/.git": true,
+    "**/.DS_Store": true
+  },
+  "search.exclude": {
+    "node_modules": true
+  },
+  "javascript.preferences.includePackageJsonAutoImports": "on",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2
+}

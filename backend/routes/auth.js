@@ -5,6 +5,7 @@ const router = new Router();
 
 // 认证中间件
 const authMiddleware = async (ctx, next) => {
+  console.log('🔐 AuthMiddleware被调用:', ctx.path, ctx.method);
   try {
     const address = ctx.headers['x-auth-address'];
     const message = decodeURIComponent(ctx.headers['x-auth-message'] || '');
@@ -76,6 +77,7 @@ const authMiddleware = async (ctx, next) => {
         remainingSeconds: expiry - now
       };
 
+      console.log('✅ 认证验证成功:', address);
       await next();
     } catch (signatureError) {
       ctx.status = 401;

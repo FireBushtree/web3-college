@@ -7,6 +7,7 @@ import Layout from '@/components/Layout'
 import Create from '@/pages/Create'
 import Detail from '@/pages/Detail'
 import Home from '@/pages/Home'
+import Profile from '@/pages/Profile'
 import Auth from './components/Auth'
 import { wagmiConfig } from './config/wagmi'
 import './index.css'
@@ -25,6 +26,7 @@ createRoot(container).render(
               <Route index element={<Home />} />
               <Route path="/create" element={<Create />} />
               <Route path="/course/:id" element={<Detail />} />
+              <Route path="/profile" element={<Profile />} />
             </Routes>
           </Layout>
         </BrowserRouter>
