@@ -4,7 +4,7 @@ import axios from 'axios'
 const API_BASE = '/api'
 
 // Create axios instance with default config
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: API_BASE,
   timeout: 10000,
   headers: {
@@ -33,18 +33,6 @@ apiClient.interceptors.response.use(
 )
 
 export const api = {
-  // Test endpoint to verify proxy configuration
-  async health() {
-    try {
-      const response = await apiClient.get('/health')
-      return response.data
-    }
-    catch (error) {
-      console.error('API health check failed:', error)
-      return { status: 'error', message: 'Proxy configuration may not be working' }
-    }
-  },
-
   // Course management endpoints
   async createCourse(courseData: { title: string, content: string, price: string, creator: string }) {
     try {
