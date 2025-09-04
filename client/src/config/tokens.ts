@@ -19,8 +19,14 @@ export const OWC_TOKEN_DECIMALS = 0
 
 // LINK Token contract addresses
 export const LINK_TOKEN_ADDRESSES = {
-  [mainnet.id]: '0x514910771AF9Ca656af840dff83E8264EcF986CA' as Address,
-  [sepolia.id]: '0xFF34B3d4Aee8ddCd6F9AFFFB6Fe49bD371b8a357' as Address,
+  // [mainnet.id]: '0x514910771AF9Ca656af840dff83E8264EcF986CA' as Address,
+  [sepolia.id]: '0xf8Fb3713D459D7C1018BD0A49D19b4C44290EBE5' as Address,
+  // [localhost.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789' as Address,
+} as const
+
+export const LINK_A_TOKEN_ADDRESSES = {
+  // [mainnet.id]: '0x514910771AF9Ca656af840dff83E8264EcF986CA' as Address,
+  [sepolia.id]: '0x3FfAf50D4F4E96eB78f2407c090b72e86eCaed24' as Address,
   // [localhost.id]: '0x779877A7B0D9E8603169DdbD7836e478b4624789' as Address,
 } as const
 

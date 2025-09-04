@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react'
 import { formatEther, parseEther } from 'viem'
 import { useAccount, useBalance, useChainId, useReadContract, useWriteContract } from 'wagmi'
 import Toast from '@/components/Toast'
-import { AAVE_POOL_ADDRESSES, LINK_TOKEN_ADDRESSES, TOKENS } from '@/config/tokens'
+import { AAVE_POOL_ADDRESSES, LINK_A_TOKEN_ADDRESSES, LINK_TOKEN_ADDRESSES, TOKENS } from '@/config/tokens'
+import { AAVE_POOL_ABI } from '@/constants/abi'
 
 // ERC20 ABI for LINK token
 const ERC20_ABI = [
@@ -19,33 +20,6 @@ const ERC20_ABI = [
     name: 'allowance',
     outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
-    type: 'function',
-  },
-] as const
-
-// Simplified Aave Pool ABI
-const AAVE_POOL_ABI = [
-  {
-    inputs: [
-      { name: 'asset', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'onBehalfOf', type: 'address' },
-      { name: 'referralCode', type: 'uint16' },
-    ],
-    name: 'supply',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { name: 'asset', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'to', type: 'address' },
-    ],
-    name: 'withdraw',
-    outputs: [{ name: '', type: 'uint256' }],
-    stateMutability: 'nonpayable',
     type: 'function',
   },
 ] as const
@@ -298,6 +272,16 @@ function StakeCard() {
 }
 
 export default function Stake() {
+  const { address } = useAccount()
+  const chainId = useChainId()
+  const linkAtokenAddress = LINK_A_TOKEN_ADDRESSES[chainId as keyof typeof LINK_A_TOKEN_ADDRESSES]
+
+  // Get LINK A balance
+  const { data: aTokenbalance } = useBalance({
+    address,
+    token: linkAtokenAddress,
+  })
+
   return (
     <div className="max-w-2xl mx-auto space-y-8">
       <div className="text-center">
@@ -309,40 +293,38 @@ export default function Stake() {
         </p>
       </div>
 
+      <div className="bg-gray-900/30 backdrop-blur-xl border border-gray-800/30 rounded-2xl p-6">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
+            <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+            </svg>
+          </div>
+          <span className="text-gray-300 font-medium">Total Staked</span>
+        </div>
+        <div className="mb-2">
+          <span className="text-2xl font-bold text-blue-400">{ aTokenbalance?.value ? formatEther(aTokenbalance?.value) : '0.00' }</span>
+          <span className="text-gray-400 text-lg ml-2">LINK</span>
+        </div>
+        <p className="text-gray-500 text-sm">Your staked balance</p>
+      </div>
+
       <StakeCard />
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-900/30 backdrop-blur-xl border border-gray-800/30 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <span className="text-gray-300 font-medium">APY</span>
+      <div className="bg-gray-900/30 backdrop-blur-xl border border-gray-800/30 rounded-2xl p-6">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
+            <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
           </div>
-          <div className="mb-2">
-            <span className="text-2xl font-bold text-green-400">~3.2%</span>
-          </div>
-          <p className="text-gray-500 text-sm">Annual Percentage Yield</p>
+          <span className="text-gray-300 font-medium">APY</span>
         </div>
-
-        <div className="bg-gray-900/30 backdrop-blur-xl border border-gray-800/30 rounded-2xl p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-            </div>
-            <span className="text-gray-300 font-medium">Total Staked</span>
-          </div>
-          <div className="mb-2">
-            <span className="text-2xl font-bold text-blue-400">0.00</span>
-            <span className="text-gray-400 text-lg ml-2">LINK</span>
-          </div>
-          <p className="text-gray-500 text-sm">Your staked balance</p>
+        <div className="mb-2">
+          <span className="text-2xl font-bold text-green-400">~3.2%</span>
         </div>
+        <p className="text-gray-500 text-sm">Annual Percentage Yield</p>
       </div>
     </div>
   )
