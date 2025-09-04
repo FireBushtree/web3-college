@@ -39,6 +39,7 @@ function Navigation() {
     { name: 'Home', path: '/', current: location.pathname === '/' },
     { name: 'Course', path: '/create', current: location.pathname === '/create' },
     { name: 'Profile', path: '/profile', current: location.pathname === '/profile' },
+    { name: 'Stake', path: '/stake', current: location.pathname === '/stake' },
   ]
 
   return (
