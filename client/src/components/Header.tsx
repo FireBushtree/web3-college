@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router'
 import { formatUnits } from 'viem'
 import { useAccount, useBalance, useChainId } from 'wagmi'
 import { OWC_TOKEN_ADDRESSES, OWC_TOKEN_DECIMALS } from '@/config/tokens'
+import { useEffect } from 'react'
 
 interface WalletInfoProps {
   address: string
@@ -11,6 +12,15 @@ interface WalletInfoProps {
 
 function WalletInfo({ address, owcBalance }: WalletInfoProps) {
   const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`
+  useEffect(() => {
+    const authData = localStorage.getItem('auth-data')
+    if (authData) {
+        const { address: localAddress } = JSON.parse(authData)
+        if (localAddress !== address) {
+          localStorage.removeItem('auth-data')
+        }
+    }
+  }, [address])
 
   return (
     <div className="flex items-center gap-3 bg-gray-800/50 border border-gray-700/50 rounded-xl px-4 py-1 backdrop-blur-sm">

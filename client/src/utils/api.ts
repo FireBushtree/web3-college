@@ -24,7 +24,8 @@ apiClient.interceptors.request.use(
         config.headers['x-auth-signature'] = signature
         config.headers['x-auth-timestamp'] = timestamp.toString()
         config.headers['x-auth-expiry'] = expiry.toString()
-      } catch (error) {
+      }
+      catch (error) {
         console.error('Failed to parse auth data:', error)
       }
     }
@@ -32,7 +33,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error)
-  }
+  },
 )
 
 // Add response interceptor for better error handling
@@ -42,11 +43,11 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401) {
       // 401 未授权，清除本地认证数据并触发重新签名
       localStorage.removeItem('auth-data')
-      
+
       // 通过自定义事件通知 auth hook 重新签名
       window.dispatchEvent(new CustomEvent('auth-expired'))
     }
-    
+
     if (error.response) {
       // Server responded with error status
       console.error(`API Error ${error.response.status}:`, error.response.data)

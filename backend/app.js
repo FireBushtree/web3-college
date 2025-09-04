@@ -37,7 +37,6 @@ async function startServer() {
       console.log(`获取验证消息: GET http://localhost:${PORT}/api/auth/nonce`);
       console.log(`Header认证验证: POST http://localhost:${PORT}/api/auth/verify-token`);
       console.log(`生成认证消息: POST http://localhost:${PORT}/api/auth/generate-message`);
-      console.log(`受保护的接口示例: GET http://localhost:${PORT}/api/auth/profile`);
     });
   } catch (error) {
     console.error('启动服务器失败:', error);
