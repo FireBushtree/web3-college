@@ -1,6 +1,6 @@
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import { http } from 'wagmi'
-import { localhost, mainnet, sepolia } from 'wagmi/chains'
+import { mainnet, sepolia } from 'wagmi/chains'
 
 export const wagmiConfig = getDefaultConfig({
   appName: 'web-college',
