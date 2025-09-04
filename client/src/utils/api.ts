@@ -12,10 +12,41 @@ export const apiClient = axios.create({
   },
 })
 
+// Add request interceptor for auth headers
+apiClient.interceptors.request.use(
+  (config) => {
+    const authData = localStorage.getItem('auth-data')
+    if (authData) {
+      try {
+        const { address, message, signature, timestamp, expiry } = JSON.parse(authData)
+        config.headers['x-auth-address'] = address
+        config.headers['x-auth-message'] = encodeURIComponent(message)
+        config.headers['x-auth-signature'] = signature
+        config.headers['x-auth-timestamp'] = timestamp.toString()
+        config.headers['x-auth-expiry'] = expiry.toString()
+      } catch (error) {
+        console.error('Failed to parse auth data:', error)
+      }
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
 // Add response interceptor for better error handling
 apiClient.interceptors.response.use(
   response => response,
-  (error) => {
+  async (error) => {
+    if (error.response?.status === 401) {
+      // 401 未授权，清除本地认证数据并触发重新签名
+      localStorage.removeItem('auth-data')
+      
+      // 通过自定义事件通知 auth hook 重新签名
+      window.dispatchEvent(new CustomEvent('auth-expired'))
+    }
+    
     if (error.response) {
       // Server responded with error status
       console.error(`API Error ${error.response.status}:`, error.response.data)

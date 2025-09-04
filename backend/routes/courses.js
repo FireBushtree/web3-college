@@ -86,7 +86,6 @@ router.get("/user", authMiddleware, async (ctx) => {
       success: true,
       message: "获取用户课程列表成功",
       data: {
-        address: authenticatedAddress,
         courses: courses || [],
       },
     };

@@ -66,7 +66,7 @@ export default function Toast({ message, type = 'success', duration = 4000, onCl
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div className="fixed top-20 right-4 z-60">
       <div
         className={`
           ${getToastStyles()}

@@ -110,7 +110,7 @@ export default function Profile() {
       setLoading(true)
       setError(null)
       const result = await api.getUserCourses()
-      setCourses(result)
+      setCourses(result.courses)
     }
     catch (err) {
       console.error('Failed to fetch user courses:', err)

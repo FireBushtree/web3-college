@@ -12,12 +12,36 @@ export function useAuth() {
       return
     }
 
-    const expiry = localStorage.getItem('auth-expiry')
-    if (!expiry || Date.now() > Number.parseInt(expiry) * 1000) {
+    const authData = localStorage.getItem('auth-data')
+    if (!authData) {
+      handleSignMessage()
+      return
+    }
+
+    try {
+      const { expiry } = JSON.parse(authData)
+      if (Date.now() > Number.parseInt(expiry) * 1000) {
+        handleSignMessage()
+      }
+    }
+    catch {
       handleSignMessage()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connector?.getChainId, address])
+
+  // 监听401错误事件，自动重新签名
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      if (address && connector?.getChainId) {
+        handleSignMessage()
+      }
+    }
+
+    window.addEventListener('auth-expired', handleAuthExpired)
+    return () => window.removeEventListener('auth-expired', handleAuthExpired)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, connector?.getChainId])
 
   function verifyMessage(params: {
     address: string
@@ -61,7 +85,16 @@ export function useAuth() {
               timestamp,
               expiry,
             })
-            localStorage.setItem('auth-expiry', expiry.toString())
+
+            // 存储所有认证数据
+            const authData = {
+              address,
+              message,
+              signature,
+              timestamp,
+              expiry,
+            }
+            localStorage.setItem('auth-data', JSON.stringify(authData))
           }
           catch (error) {
             console.error('Verification failed:', error)

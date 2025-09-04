@@ -1,6 +1,6 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useState } from 'react'
-import { useAccount, useChainId, useWriteContract } from 'wagmi'
+import { useEffect, useState } from 'react'
+import { useAccount, useChainId, useTransactionReceipt, useWriteContract } from 'wagmi'
 import CourseRegistryABI from '@/assets/CourseRegistry.json'
 import Toast from '@/components/Toast'
 import { COURSE_REGISTRY_ADDRESSES } from '@/config/tokens'
@@ -31,22 +31,19 @@ export default function Create() {
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success')
 
-  const { writeContract } = useWriteContract({
-    mutation: {
-      onSuccess: () => {
-        // 合约调用成功后显示Toast
-        setToastMessage('🎉 Course registered on blockchain successfully!')
-        setToastType('success')
-        setShowToast(true)
-      },
-      onError: (error) => {
-        // 合约调用失败时显示Toast
-        setToastMessage(`❌ Blockchain registration failed: ${error.message}`)
-        setToastType('error')
-        setShowToast(true)
-      },
-    },
+  const { writeContract, isPending, data } = useWriteContract({
   })
+
+  const { isLoading, isSuccess } = useTransactionReceipt({ hash: data })
+
+  useEffect(() => {
+    if (isSuccess) {
+      // 合约调用成功后显示Toast
+      setToastMessage('🎉 Course registered on blockchain successfully!')
+      setToastType('success')
+      setShowToast(true)
+    }
+  }, [isSuccess])
 
   const updateForm = (field: keyof CourseForm, value: string) => {
     setForm(prev => ({
@@ -335,7 +332,7 @@ export default function Create() {
               disabled={!isConnected || !form.title || !form.content || !form.price || isSubmitting}
               className="w-full bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
             >
-              {isSubmitting
+              {(isSubmitting || isPending || isLoading)
                 ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
