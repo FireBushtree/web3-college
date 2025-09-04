@@ -142,6 +142,34 @@ router.put("/:id/disable", async (ctx) => {
   }
 });
 
+router.put("/:id", async (ctx) => {
+  try {
+    const db = getDatabase();
+    const courseModel = new Course(db);
+
+    const { name, description, price } = ctx.request.body;
+    
+    const course = await courseModel.update(ctx.params.id, {
+      name,
+      description,
+      price,
+    });
+
+    ctx.status = 200;
+    ctx.body = {
+      success: true,
+      message: "课程更新成功",
+      data: course,
+    };
+  } catch (error) {
+    ctx.status = 400;
+    ctx.body = {
+      success: false,
+      message: error.message,
+    };
+  }
+});
+
 router.get("/:id", async (ctx) => {
   try {
     const db = getDatabase();

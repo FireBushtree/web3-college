@@ -46,6 +46,7 @@ function CreateCourseCard() {
 function UserCourseCard({ course }: { course: Course }) {
   const handleEdit = (e: BaseSyntheticEvent) => {
     e.stopPropagation()
+    window.location.href = `/edit/${course._id}`
   }
 
   return (

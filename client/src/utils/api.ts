@@ -116,4 +116,15 @@ export const api = {
       throw error
     }
   },
+
+  async updateCourse(id: number, courseData: { name: string, description: string, price: number }) {
+    try {
+      const response = await apiClient.put(`/courses/${id}`, courseData)
+      return response.data
+    }
+    catch (error) {
+      console.error('Update course API failed:', error)
+      throw error
+    }
+  },
 }

@@ -6,6 +6,7 @@ import { WagmiProvider } from 'wagmi'
 import Layout from '@/components/Layout'
 import Create from '@/pages/Create'
 import Detail from '@/pages/Detail'
+import Edit from '@/pages/Edit'
 import Home from '@/pages/Home'
 import Profile from '@/pages/Profile'
 import Auth from './components/Auth'
@@ -26,6 +27,7 @@ createRoot(container).render(
               <Route index element={<Home />} />
               <Route path="/create" element={<Create />} />
               <Route path="/course/:id" element={<Detail />} />
+              <Route path="/edit/:id" element={<Edit />} />
               <Route path="/profile" element={<Profile />} />
             </Routes>
           </Layout>

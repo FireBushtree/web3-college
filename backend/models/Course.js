@@ -55,6 +55,54 @@ class Course {
     return await this.collection.find({ creator }).toArray();
   }
 
+  async update(id, updateData) {
+    const { name, description, price } = updateData;
+    
+    // 构建更新对象，只包含提供的字段
+    const updateObj = {
+      updatedAt: new Date()
+    };
+    
+    if (name !== undefined) {
+      if (!name.trim()) {
+        throw new Error('课程名称不能为空');
+      }
+      updateObj.name = name;
+    }
+    
+    if (description !== undefined) {
+      if (!description.trim()) {
+        throw new Error('课程简介不能为空');
+      }
+      updateObj.description = description;
+    }
+    
+    if (price !== undefined) {
+      if (price < 0) {
+        throw new Error('课程价格不能为负数');
+      }
+      updateObj.price = Number(price);
+    }
+    
+    try {
+      const result = await this.collection.updateOne(
+        { _id: ObjectId.createFromHexString(id) },
+        { $set: updateObj }
+      );
+      
+      if (result.matchedCount === 0) {
+        throw new Error('课程不存在');
+      }
+      
+      return await this.findById(id);
+    } catch (error) {
+      if (error.message === '课程不存在' || error.message.includes('不能为空') || error.message.includes('不能为负数')) {
+        throw error;
+      }
+      throw new Error('无效的课程ID格式');
+    }
+  }
+
   async updateEnabled(id, enabled) {
     try {
       const result = await this.collection.updateOne(
