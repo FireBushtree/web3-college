@@ -8,16 +8,33 @@ export function useAuth() {
   })
 
   useEffect(() => {
-    if (!connector?.getChainId) {
+    if (!connector?.getChainId || !address) {
       return
     }
 
-    handleSignMessage()
+    const expiry = localStorage.getItem('auth-expiry')
+    if (!expiry || Date.now() > Number.parseInt(expiry) * 1000) {
+      handleSignMessage()
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connector?.getChainId])
+  }, [connector?.getChainId, address])
 
-  function verifyMessage() {
-    return apiClient.post('/auth/generate-message', {})
+  function verifyMessage(params: {
+    address: string
+    message: string
+    signature: string
+    timestamp: number
+    expiry: number
+  }) {
+    return apiClient.post('/auth/verify-token', {}, {
+      headers: {
+        'x-auth-address': params.address,
+        'x-auth-message': encodeURIComponent(params.message),
+        'x-auth-signature': params.signature,
+        'x-auth-timestamp': params.timestamp.toString(),
+        'x-auth-expiry': params.expiry.toString(),
+      },
+    })
   }
 
   function generateMessage() {
@@ -32,13 +49,26 @@ export function useAuth() {
 
   async function handleSignMessage() {
     const res = await generateMessage()
-    if (res) {
-      signMessage({ message: res.data.data.message }, {
-        onSuccess(res) {
-          console.log(res)
+    if (res && address) {
+      const { message, timestamp, expiry } = res.data.data
+      signMessage({ message }, {
+        async onSuccess(signature) {
+          try {
+            await verifyMessage({
+              address,
+              message,
+              signature,
+              timestamp,
+              expiry,
+            })
+            localStorage.setItem('auth-expiry', expiry.toString())
+          }
+          catch (error) {
+            console.error('Verification failed:', error)
+          }
         },
-        onError(res) {
-          console.log(res)
+        onError(error) {
+          console.error('Signing failed:', error)
         },
       })
     }
@@ -46,5 +76,6 @@ export function useAuth() {
 
   return {
     handleSignMessage,
+    verifyMessage,
   }
 }
