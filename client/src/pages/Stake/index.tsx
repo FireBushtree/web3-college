@@ -1,5 +1,5 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { formatEther, parseEther } from 'viem'
 import {
   useAccount,
@@ -12,7 +12,6 @@ import Toast from '@/components/Toast'
 import {
   AAVE_POOL_ADDRESSES,
   LINK_A_TOKEN_ADDRESSES,
-  LINK_TOKEN_ADDRESSES,
   TOKENS,
 } from '@/config/tokens'
 import { AAVE_POOL_ABI } from '@/constants/abi'

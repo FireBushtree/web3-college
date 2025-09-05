@@ -1,7 +1,5 @@
 import type { Address } from 'viem'
-import { localhost, mainnet, sepolia } from 'wagmi/chains'
-import CourseRegistryABI from '@/assets/CourseRegistry.json'
-import OWCTokenABI from '@/assets/OWCToken.json'
+import { mainnet, sepolia } from 'wagmi/chains'
 
 export const OWC_TOKEN_ADDRESSES = {
   // [localhost.id]: OWCTokenABI.networks[5777].address as Address,
