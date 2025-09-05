@@ -1,6 +1,6 @@
-import type { CourseFormData } from '@/components/CourseForm'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
+import type { CourseFormData } from '@/components/CourseForm'
 import CourseForm from '@/components/CourseForm'
 import { api } from '@/utils/api'
 
@@ -33,12 +33,10 @@ export default function Edit() {
         setError(null)
         const result = await api.getCourse(id)
         setCourse(result)
-      }
-      catch (err) {
+      } catch (err) {
         console.error('Failed to fetch course:', err)
         setError('Failed to load course')
-      }
-      finally {
+      } finally {
         setLoading(false)
       }
     }
@@ -75,8 +73,18 @@ export default function Edit() {
       <div className="max-w-2xl mx-auto">
         <div className="text-center py-12">
           <div className="inline-flex items-center gap-2 text-red-400 mb-4">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.312 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.502 0L4.312 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
             </svg>
             <span className="text-lg font-semibold">Failed to Load Course</span>
           </div>
@@ -104,9 +112,7 @@ export default function Edit() {
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent mb-2">
           Edit Course
         </h1>
-        <p className="text-gray-400">
-          Update your course details below
-        </p>
+        <p className="text-gray-400">Update your course details below</p>
       </div>
 
       <CourseForm

@@ -60,9 +60,7 @@ export default (env, argv) => {
             'css-loader',
             'postcss-loader',
           ],
-          include: [
-            path.resolve(__dirname, 'src'),
-          ],
+          include: [path.resolve(__dirname, 'src')],
         },
       ],
     },

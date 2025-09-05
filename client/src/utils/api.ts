@@ -18,14 +18,14 @@ apiClient.interceptors.request.use(
     const authData = localStorage.getItem('auth-data')
     if (authData) {
       try {
-        const { address, message, signature, timestamp, expiry } = JSON.parse(authData)
+        const { address, message, signature, timestamp, expiry } =
+          JSON.parse(authData)
         config.headers['x-auth-address'] = address
         config.headers['x-auth-message'] = encodeURIComponent(message)
         config.headers['x-auth-signature'] = signature
         config.headers['x-auth-timestamp'] = timestamp.toString()
         config.headers['x-auth-expiry'] = expiry.toString()
-      }
-      catch (error) {
+      } catch (error) {
         console.error('Failed to parse auth data:', error)
       }
     }
@@ -38,7 +38,7 @@ apiClient.interceptors.request.use(
 
 // Add response interceptor for better error handling
 apiClient.interceptors.response.use(
-  response => response,
+  (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
       // 401 未授权，清除本地认证数据并触发重新签名
@@ -51,12 +51,10 @@ apiClient.interceptors.response.use(
     if (error.response) {
       // Server responded with error status
       console.error(`API Error ${error.response.status}:`, error.response.data)
-    }
-    else if (error.request) {
+    } else if (error.request) {
       // Network error
       console.error('Network Error:', error.message)
-    }
-    else {
+    } else {
       // Request setup error
       console.error('Request Error:', error.message)
     }
@@ -66,7 +64,12 @@ apiClient.interceptors.response.use(
 
 export const api = {
   // Course management endpoints
-  async createCourse(courseData: { title: string, content: string, price: string, creator: string }) {
+  async createCourse(courseData: {
+    title: string
+    content: string
+    price: string
+    creator: string
+  }) {
     try {
       // Map frontend fields to backend API format
       const apiData = {
@@ -78,8 +81,7 @@ export const api = {
 
       const response = await apiClient.post('/courses', apiData)
       return response.data
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Create course API failed:', error)
       throw error
     }
@@ -89,8 +91,7 @@ export const api = {
     try {
       const response = await apiClient.get('/courses')
       return response.data?.data || []
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Get courses API failed:', error)
       throw error
     }
@@ -100,8 +101,7 @@ export const api = {
     try {
       const response = await apiClient.get(`/courses/${id}`)
       return response.data?.data
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Get course API failed:', error)
       throw error
     }
@@ -111,19 +111,20 @@ export const api = {
     try {
       const response = await apiClient.get(`/courses/user`)
       return response.data?.data || []
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Get user courses API failed:', error)
       throw error
     }
   },
 
-  async updateCourse(id: number, courseData: { name: string, description: string, price: number }) {
+  async updateCourse(
+    id: number,
+    courseData: { name: string; description: string; price: number },
+  ) {
     try {
       const response = await apiClient.put(`/courses/${id}`, courseData)
       return response.data
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Update course API failed:', error)
       throw error
     }

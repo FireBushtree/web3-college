@@ -1,9 +1,9 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
+import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router'
 import { formatUnits } from 'viem'
 import { useAccount, useBalance, useChainId } from 'wagmi'
 import { OWC_TOKEN_ADDRESSES, OWC_TOKEN_DECIMALS } from '@/config/tokens'
-import { useEffect } from 'react'
 
 interface WalletInfoProps {
   address: string
@@ -15,10 +15,10 @@ function WalletInfo({ address, owcBalance }: WalletInfoProps) {
   useEffect(() => {
     const authData = localStorage.getItem('auth-data')
     if (authData) {
-        const { address: localAddress } = JSON.parse(authData)
-        if (localAddress !== address) {
-          localStorage.removeItem('auth-data')
-        }
+      const { address: localAddress } = JSON.parse(authData)
+      if (localAddress !== address) {
+        localStorage.removeItem('auth-data')
+      }
     }
   }, [address])
 
@@ -30,12 +30,10 @@ function WalletInfo({ address, owcBalance }: WalletInfoProps) {
         </span>
       </div>
       <div className="flex flex-col">
-        <span className="text-sm font-medium text-gray-100">{shortAddress}</span>
-        <span className="text-xs text-gray-400">
-          {owcBalance}
-          {' '}
-          OWC
+        <span className="text-sm font-medium text-gray-100">
+          {shortAddress}
         </span>
+        <span className="text-xs text-gray-400">{owcBalance} OWC</span>
       </div>
     </div>
   )
@@ -47,21 +45,27 @@ function Navigation() {
 
   const navItems = [
     { name: 'Home', path: '/', current: location.pathname === '/' },
-    { name: 'Course', path: '/create', current: location.pathname === '/create' },
-    { name: 'Profile', path: '/profile', current: location.pathname === '/profile' },
+    {
+      name: 'Course',
+      path: '/create',
+      current: location.pathname === '/create',
+    },
+    {
+      name: 'Profile',
+      path: '/profile',
+      current: location.pathname === '/profile',
+    },
     { name: 'Stake', path: '/stake', current: location.pathname === '/stake' },
   ]
 
   return (
     <nav className="flex items-center space-x-8">
-      {navItems.map(item => (
+      {navItems.map((item) => (
         <Link
           key={item.name}
           to={item.path}
           className={`text-sm font-medium transition-colors duration-200 ${
-            item.current
-              ? 'text-pink-400'
-              : 'text-gray-300 hover:text-pink-400'
+            item.current ? 'text-pink-400' : 'text-gray-300 hover:text-pink-400'
           }`}
         >
           {item.name}
@@ -80,7 +84,9 @@ export default function Header() {
   })
 
   const owcBalance = balance
-    ? Number.parseFloat(formatUnits(balance.value, OWC_TOKEN_DECIMALS)).toFixed(2)
+    ? Number.parseFloat(formatUnits(balance.value, OWC_TOKEN_DECIMALS)).toFixed(
+        2,
+      )
     : '0.00'
 
   return (
@@ -97,13 +103,11 @@ export default function Header() {
 
           <div className="flex items-center space-x-8">
             <Navigation />
-            {isConnected && address
-              ? (
-                  <WalletInfo address={address} owcBalance={owcBalance} />
-                )
-              : (
-                  <ConnectButton />
-                )}
+            {isConnected && address ? (
+              <WalletInfo address={address} owcBalance={owcBalance} />
+            ) : (
+              <ConnectButton />
+            )}
           </div>
         </div>
       </div>

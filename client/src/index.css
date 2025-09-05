@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import '@rainbow-me/rainbowkit/styles.css';
+@import "tailwindcss";
+@import "@rainbow-me/rainbowkit/styles.css";
 
 * {
   box-sizing: border-box;
@@ -15,8 +15,12 @@ body {
   background: linear-gradient(135deg, rgb(13, 13, 13) 0%, rgb(19, 19, 19) 100%);
   background-attachment: fixed;
   color: rgb(243, 244, 246);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  font-feature-settings:
+    "rlig" 1,
+    "calt" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

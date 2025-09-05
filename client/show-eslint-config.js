@@ -11,27 +11,40 @@ async function exportESLintConfig() {
     const config = await configFactory
 
     const seen = new WeakSet()
-    const serializedConfig = JSON.stringify(config, (_key, value) => {
-      if (typeof value === 'function') {
-        return `[Function: ${value.name || 'anonymous'}]`
-      }
-      if (typeof value === 'object' && value !== null) {
-        if (seen.has(value)) {
-          return '[Circular Reference]'
+    const serializedConfig = JSON.stringify(
+      config,
+      (_key, value) => {
+        if (typeof value === 'function') {
+          return `[Function: ${value.name || 'anonymous'}]`
         }
-        seen.add(value)
-        if (value.constructor && value.constructor.name && value.constructor.name !== 'Object' && value.constructor.name !== 'Array') {
-          return `[${value.constructor.name}: ${value.toString ? value.toString() : 'object'}]`
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            return '[Circular Reference]'
+          }
+          seen.add(value)
+          if (
+            value.constructor &&
+            value.constructor.name &&
+            value.constructor.name !== 'Object' &&
+            value.constructor.name !== 'Array'
+          ) {
+            return `[${value.constructor.name}: ${value.toString ? value.toString() : 'object'}]`
+          }
         }
-      }
-      return value
-    }, 2)
+        return value
+      },
+      2,
+    )
 
     writeFileSync('./eslint-config-export.json', serializedConfig, 'utf8')
-    
-    process.stdout.write('✅ ESLint configuration exported to eslint-config-export.json\n')
-    process.stdout.write(`📊 Total size: ${(serializedConfig.length / 1024).toFixed(2)} KB\n`)
-    
+
+    process.stdout.write(
+      '✅ ESLint configuration exported to eslint-config-export.json\n',
+    )
+    process.stdout.write(
+      `📊 Total size: ${(serializedConfig.length / 1024).toFixed(2)} KB\n`,
+    )
+
     if (Array.isArray(config)) {
       process.stdout.write(`📋 Configuration blocks: ${config.length}\n`)
     }

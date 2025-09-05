@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { formatUnits, parseEther } from 'viem'
-import { useAccount, useBalance, useChainId, useReadContract, useWriteContract } from 'wagmi'
+import {
+  useAccount,
+  useBalance,
+  useChainId,
+  useReadContract,
+  useWriteContract,
+} from 'wagmi'
 import OWCTokenABI from '@/assets/OWCToken.json'
 import { OWC_TOKEN_ADDRESSES, OWC_TOKEN_DECIMALS } from '@/config/tokens'
 
@@ -33,17 +39,19 @@ interface TokenInputProps {
   label: string
 }
 
-function TokenInput({ token, amount, onAmountChange, balance, label }: TokenInputProps) {
+function TokenInput({
+  token,
+  amount,
+  onAmountChange,
+  balance,
+  label,
+}: TokenInputProps) {
   return (
     <div className="bg-gray-800/30 border border-gray-700/50 rounded-xl p-4">
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm text-gray-400">{label}</span>
         {balance && (
-          <span className="text-sm text-gray-400">
-            Balance:
-            {' '}
-            {balance}
-          </span>
+          <span className="text-sm text-gray-400">Balance: {balance}</span>
         )}
       </div>
 
@@ -63,7 +71,7 @@ function TokenInput({ token, amount, onAmountChange, balance, label }: TokenInpu
         <input
           type="text"
           value={amount}
-          onChange={e => onAmountChange(e.target.value)}
+          onChange={(e) => onAmountChange(e.target.value)}
           placeholder="0.0"
           className="flex-1 bg-transparent text-right text-2xl font-medium text-white placeholder-gray-500 outline-none"
         />
@@ -87,7 +95,8 @@ export default function SwapCard() {
     token: OWC_TOKEN_ADDRESSES[chainId as keyof typeof OWC_TOKEN_ADDRESSES],
   })
 
-  const owcTokenAddress = OWC_TOKEN_ADDRESSES[chainId as keyof typeof OWC_TOKEN_ADDRESSES]
+  const owcTokenAddress =
+    OWC_TOKEN_ADDRESSES[chainId as keyof typeof OWC_TOKEN_ADDRESSES]
 
   const { data: contractRate } = useReadContract({
     address: owcTokenAddress as `0x${string}`,
@@ -106,9 +115,15 @@ export default function SwapCard() {
 
   const getTokenBalance = (token: Token) => {
     if (token.address === null) {
-      return ethBalance ? Number.parseFloat(formatUnits(ethBalance.value, 18)).toFixed(4) : '0.0000'
+      return ethBalance
+        ? Number.parseFloat(formatUnits(ethBalance.value, 18)).toFixed(4)
+        : '0.0000'
     }
-    return owcBalance ? Number.parseFloat(formatUnits(owcBalance.value, OWC_TOKEN_DECIMALS)).toFixed(4) : '0.0000'
+    return owcBalance
+      ? Number.parseFloat(
+          formatUnits(owcBalance.value, OWC_TOKEN_DECIMALS),
+        ).toFixed(4)
+      : '0.0000'
   }
 
   const handleFromAmountChange = (value: string) => {
@@ -119,15 +134,13 @@ export default function SwapCard() {
         const rate = contractRate ? Number(contractRate) : 5000
         const owcAmount = (Number.parseFloat(value) * rate).toString()
         setToAmount(owcAmount)
-      }
-      else {
+      } else {
         // OWC to ETH: reverse calculation
         const rate = contractRate ? Number(contractRate) : 5000
         const ethAmount = (Number.parseFloat(value) / rate).toFixed(6)
         setToAmount(ethAmount)
       }
-    }
-    else {
+    } else {
       setToAmount('')
     }
   }
@@ -157,13 +170,11 @@ export default function SwapCard() {
           functionName: 'buyTokens',
           value: parseEther(fromAmount),
         })
-      }
-      else {
+      } else {
         // TODO: Implement OWC to ETH swap (sellTokens)
         console.warn('OWC to ETH swap not implemented yet')
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Swap transaction failed:', error)
     }
   }
@@ -196,7 +207,12 @@ export default function SwapCard() {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                />
               </svg>
             </button>
           </div>
@@ -211,35 +227,31 @@ export default function SwapCard() {
         </div>
 
         <div className="mt-6">
-          {!isConnected
-            ? (
-                <div className="text-center py-4">
-                  <span className="text-gray-400">Connect wallet to trade</span>
+          {!isConnected ? (
+            <div className="text-center py-4">
+              <span className="text-gray-400">Connect wallet to trade</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSwap}
+              disabled={
+                !fromAmount || Number.parseFloat(fromAmount) <= 0 || isSwapping
+              }
+              className="cursor-pointer w-full bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              {isSwapping ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  Swapping...
                 </div>
-              )
-            : (
-                <button
-                  type="button"
-                  onClick={handleSwap}
-                  disabled={!fromAmount || Number.parseFloat(fromAmount) <= 0 || isSwapping}
-                  className="cursor-pointer w-full bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
-                >
-                  {isSwapping
-                    ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                          Swapping...
-                        </div>
-                      )
-                    : !fromAmount || Number.parseFloat(fromAmount) <= 0
-                        ? (
-                            'Enter an amount'
-                          )
-                        : (
-                            `Swap ${fromToken.symbol} for ${toToken.symbol}`
-                          )}
-                </button>
+              ) : !fromAmount || Number.parseFloat(fromAmount) <= 0 ? (
+                'Enter an amount'
+              ) : (
+                `Swap ${fromToken.symbol} for ${toToken.symbol}`
               )}
+            </button>
+          )}
         </div>
       </div>
     </div>

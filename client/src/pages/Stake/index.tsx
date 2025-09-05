@@ -1,22 +1,39 @@
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useEffect, useState } from 'react'
 import { formatEther, parseEther } from 'viem'
-import { useAccount, useBalance, useChainId, useReadContract, useWriteContract } from 'wagmi'
+import {
+  useAccount,
+  useBalance,
+  useChainId,
+  useReadContract,
+  useWriteContract,
+} from 'wagmi'
 import Toast from '@/components/Toast'
-import { AAVE_POOL_ADDRESSES, LINK_A_TOKEN_ADDRESSES, LINK_TOKEN_ADDRESSES, TOKENS } from '@/config/tokens'
+import {
+  AAVE_POOL_ADDRESSES,
+  LINK_A_TOKEN_ADDRESSES,
+  LINK_TOKEN_ADDRESSES,
+  TOKENS,
+} from '@/config/tokens'
 import { AAVE_POOL_ABI } from '@/constants/abi'
 
 // ERC20 ABI for LINK token
 const ERC20_ABI = [
   {
-    inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }],
+    inputs: [
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
+    ],
     name: 'approve',
     outputs: [{ name: '', type: 'bool' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
-    inputs: [{ name: 'owner', type: 'address' }, { name: 'spender', type: 'address' }],
+    inputs: [
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' },
+    ],
     name: 'allowance',
     outputs: [{ name: '', type: 'uint256' }],
     stateMutability: 'view',
@@ -34,11 +51,15 @@ function StakeCard() {
   // Toast states
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
-  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success')
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>(
+    'success',
+  )
 
   const linkToken = TOKENS.LINK
-  const linkAddress = linkToken.addresses[chainId as keyof typeof linkToken.addresses]
-  const poolAddress = AAVE_POOL_ADDRESSES[chainId as keyof typeof AAVE_POOL_ADDRESSES]
+  const linkAddress =
+    linkToken.addresses[chainId as keyof typeof linkToken.addresses]
+  const poolAddress =
+    AAVE_POOL_ADDRESSES[chainId as keyof typeof AAVE_POOL_ADDRESSES]
 
   // Get LINK balance
   const { data: balance } = useBalance({
@@ -93,12 +114,13 @@ function StakeCard() {
   })
 
   const amountBigInt = amount ? parseEther(amount) : BigInt(0)
-  const hasEnoughAllowance = allowance && amountBigInt > BigInt(0) && allowance >= amountBigInt
-  const hasEnoughBalance = balance && amountBigInt > BigInt(0) && balance.value >= amountBigInt
+  const hasEnoughAllowance =
+    allowance && amountBigInt > BigInt(0) && allowance >= amountBigInt
+  const hasEnoughBalance =
+    balance && amountBigInt > BigInt(0) && balance.value >= amountBigInt
 
   const handleApprove = () => {
-    if (!linkAddress || !poolAddress || !amountBigInt)
-      return
+    if (!linkAddress || !poolAddress || !amountBigInt) return
 
     setIsApproving(true)
     approveToken({
@@ -110,8 +132,7 @@ function StakeCard() {
   }
 
   const handleStake = () => {
-    if (!linkAddress || !poolAddress || !amountBigInt || !address)
-      return
+    if (!linkAddress || !poolAddress || !amountBigInt || !address) return
 
     setIsStaking(true)
     stakeToken({
@@ -152,7 +173,9 @@ function StakeCard() {
           </div>
           <div>
             <h3 className="text-xl font-bold text-white">Stake LINK</h3>
-            <p className="text-gray-400 text-sm">Earn rewards by supplying LINK to Aave</p>
+            <p className="text-gray-400 text-sm">
+              Earn rewards by supplying LINK to Aave
+            </p>
           </div>
         </div>
 
@@ -185,7 +208,7 @@ function StakeCard() {
             <input
               type="number"
               value={amount}
-              onChange={e => setAmount(e.target.value)}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder="0.0"
               min="0"
               step="0.01"
@@ -207,61 +230,69 @@ function StakeCard() {
 
         {/* Action Buttons */}
         <div className="space-y-4">
-          {!isConnected
-            ? (
-                <div className="text-center">
-                  <ConnectButton />
+          {!isConnected ? (
+            <div className="text-center">
+              <ConnectButton />
+            </div>
+          ) : !hasEnoughAllowance && amount ? (
+            <button
+              onClick={handleApprove}
+              disabled={isApproving || !amount || !hasEnoughBalance}
+              className="w-full bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200"
+            >
+              {isApproving ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  Approving LINK...
                 </div>
-              )
-            : !hasEnoughAllowance && amount
-                ? (
-                    <button
-                      onClick={handleApprove}
-                      disabled={isApproving || !amount || !hasEnoughBalance}
-                      className="w-full bg-gradient-to-r from-pink-500 to-violet-600 hover:from-pink-600 hover:to-violet-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200"
-                    >
-                      {isApproving
-                        ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                              Approving LINK...
-                            </div>
-                          )
-                        : (
-                            'Approve LINK'
-                          )}
-                    </button>
-                  )
-                : (
-                    <button
-                      onClick={handleStake}
-                      disabled={isStaking || !amount || !hasEnoughBalance || !hasEnoughAllowance}
-                      className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200"
-                    >
-                      {isStaking
-                        ? (
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                              Staking LINK...
-                            </div>
-                          )
-                        : (
-                            'Stake LINK'
-                          )}
-                    </button>
-                  )}
+              ) : (
+                'Approve LINK'
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={handleStake}
+              disabled={
+                isStaking || !amount || !hasEnoughBalance || !hasEnoughAllowance
+              }
+              className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200"
+            >
+              {isStaking ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  Staking LINK...
+                </div>
+              ) : (
+                'Stake LINK'
+              )}
+            </button>
+          )}
         </div>
 
         {/* Info */}
         <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700/30 rounded-xl">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <div>
-              <p className="text-blue-300 text-sm font-medium mb-1">How it works</p>
+              <p className="text-blue-300 text-sm font-medium mb-1">
+                How it works
+              </p>
               <p className="text-blue-200 text-xs leading-relaxed">
-                By staking your LINK tokens to Aave, you'll earn interest rewards. Your tokens will be supplied to the Aave lending pool and you'll receive aLINK tokens representing your stake.
+                By staking your LINK tokens to Aave, you'll earn interest
+                rewards. Your tokens will be supplied to the Aave lending pool
+                and you'll receive aLINK tokens representing your stake.
               </p>
             </div>
           </div>
@@ -274,7 +305,8 @@ function StakeCard() {
 export default function Stake() {
   const { address } = useAccount()
   const chainId = useChainId()
-  const linkAtokenAddress = LINK_A_TOKEN_ADDRESSES[chainId as keyof typeof LINK_A_TOKEN_ADDRESSES]
+  const linkAtokenAddress =
+    LINK_A_TOKEN_ADDRESSES[chainId as keyof typeof LINK_A_TOKEN_ADDRESSES]
 
   // Get LINK A balance
   const { data: aTokenbalance } = useBalance({
@@ -296,14 +328,26 @@ export default function Stake() {
       <div className="bg-gray-900/30 backdrop-blur-xl border border-gray-800/30 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center">
-            <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+            <svg
+              className="w-4 h-4 text-blue-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
+              />
             </svg>
           </div>
           <span className="text-gray-300 font-medium">Total Staked</span>
         </div>
         <div className="mb-2">
-          <span className="text-2xl font-bold text-blue-400">{ aTokenbalance?.value ? formatEther(aTokenbalance?.value) : '0.00' }</span>
+          <span className="text-2xl font-bold text-blue-400">
+            {aTokenbalance?.value ? formatEther(aTokenbalance?.value) : '0.00'}
+          </span>
           <span className="text-gray-400 text-lg ml-2">LINK</span>
         </div>
         <p className="text-gray-500 text-sm">Your staked balance</p>
@@ -315,8 +359,18 @@ export default function Stake() {
       <div className="bg-gray-900/30 backdrop-blur-xl border border-gray-800/30 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center">
-            <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            <svg
+              className="w-4 h-4 text-green-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+              />
             </svg>
           </div>
           <span className="text-gray-300 font-medium">APY</span>

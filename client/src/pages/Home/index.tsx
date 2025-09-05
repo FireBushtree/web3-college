@@ -19,7 +19,9 @@ export default function Home() {
       <div className="px-4">
         <div className="space-y-8">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2">Token Exchange</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">
+              Token Exchange
+            </h2>
             <p className="text-gray-400">
               Swap your tokens seamlessly with our integrated exchange
             </p>

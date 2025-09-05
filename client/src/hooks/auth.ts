@@ -4,8 +4,7 @@ import { apiClient } from '@/utils/api'
 
 export function useAuth() {
   const { address, connector } = useAccount()
-  const { signMessage } = useSignMessage({
-  })
+  const { signMessage } = useSignMessage({})
 
   useEffect(() => {
     if (!connector?.getChainId || !address) {
@@ -23,11 +22,10 @@ export function useAuth() {
       if (Date.now() > Number.parseInt(expiry) * 1000) {
         handleSignMessage()
       }
-    }
-    catch {
+    } catch {
       handleSignMessage()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connector?.getChainId, address])
 
   // 监听401错误事件，自动重新签名
@@ -40,7 +38,7 @@ export function useAuth() {
 
     window.addEventListener('auth-expired', handleAuthExpired)
     return () => window.removeEventListener('auth-expired', handleAuthExpired)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, connector?.getChainId])
 
   function verifyMessage(params: {
@@ -50,15 +48,19 @@ export function useAuth() {
     timestamp: number
     expiry: number
   }) {
-    return apiClient.post('/auth/verify-token', {}, {
-      headers: {
-        'x-auth-address': params.address,
-        'x-auth-message': encodeURIComponent(params.message),
-        'x-auth-signature': params.signature,
-        'x-auth-timestamp': params.timestamp.toString(),
-        'x-auth-expiry': params.expiry.toString(),
+    return apiClient.post(
+      '/auth/verify-token',
+      {},
+      {
+        headers: {
+          'x-auth-address': params.address,
+          'x-auth-message': encodeURIComponent(params.message),
+          'x-auth-signature': params.signature,
+          'x-auth-timestamp': params.timestamp.toString(),
+          'x-auth-expiry': params.expiry.toString(),
+        },
       },
-    })
+    )
   }
 
   function generateMessage() {
@@ -75,35 +77,37 @@ export function useAuth() {
     const res = await generateMessage()
     if (res && address) {
       const { message, timestamp, expiry } = res.data.data
-      signMessage({ message }, {
-        async onSuccess(signature) {
-          try {
-            await verifyMessage({
-              address,
-              message,
-              signature,
-              timestamp,
-              expiry,
-            })
+      signMessage(
+        { message },
+        {
+          async onSuccess(signature) {
+            try {
+              await verifyMessage({
+                address,
+                message,
+                signature,
+                timestamp,
+                expiry,
+              })
 
-            // 存储所有认证数据
-            const authData = {
-              address,
-              message,
-              signature,
-              timestamp,
-              expiry,
+              // 存储所有认证数据
+              const authData = {
+                address,
+                message,
+                signature,
+                timestamp,
+                expiry,
+              }
+              localStorage.setItem('auth-data', JSON.stringify(authData))
+            } catch (error) {
+              console.error('Verification failed:', error)
             }
-            localStorage.setItem('auth-data', JSON.stringify(authData))
-          }
-          catch (error) {
-            console.error('Verification failed:', error)
-          }
+          },
+          onError(error) {
+            console.error('Signing failed:', error)
+          },
         },
-        onError(error) {
-          console.error('Signing failed:', error)
-        },
-      })
+      )
     }
   }
 
