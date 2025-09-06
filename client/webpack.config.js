@@ -1,6 +1,7 @@
 import path from 'node:path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import TerserPlugin from 'terser-webpack-plugin'
 
 const __dirname = path.resolve('./')
 
@@ -14,8 +15,31 @@ export default (env, argv) => {
     entry: './src/main.tsx',
     output: {
       publicPath: '/',
-      filename: 'main.js',
+      filename: '[name].[contenthash].js',
+      chunkFilename: '[name].[contenthash].chunk.js',
       path: path.resolve(__dirname, 'dist'),
+      clean: true,
+    },
+    optimization: {
+      splitChunks: {
+        chunks: 'all',
+        // 通用大小限制
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      },
+
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            compress: { drop_console: true, drop_debugger: true },
+          },
+        }),
+      ],
     },
     devServer: {
       historyApiFallback: {},
