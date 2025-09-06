@@ -11,13 +11,27 @@ import React from 'react'
 const container = document.querySelector('#app')!
 const queryClient = new QueryClient()
 
-const Home = React.lazy(() => import('@/pages/Home'))
-const Stake = React.lazy(() => import('@/pages/Stake'))
-const Profile = React.lazy(() => import('@/pages/Profile'))
-const Create = React.lazy(() => import('@/pages/Create'))
-const Detail = React.lazy(() => import('@/pages/Detail'))
-const Edit = React.lazy(() => import('@/pages/Edit'))
-const Auth = React.lazy(() => import('@/components/Auth'))
+const Home = React.lazy(
+  () => import(/* webpackChunkName: "Home" */ '@/pages/Home'),
+)
+const Stake = React.lazy(
+  () => import(/* webpackChunkName: "Stake" */ '@/pages/Stake'),
+)
+const Profile = React.lazy(
+  () => import(/* webpackChunkName: "Profile" */ '@/pages/Profile'),
+)
+const Create = React.lazy(
+  () => import(/* webpackChunkName: "Create" */ '@/pages/Create'),
+)
+const Detail = React.lazy(
+  () => import(/* webpackChunkName: "Detail" */ '@/pages/Detail'),
+)
+const Edit = React.lazy(
+  () => import(/* webpackChunkName: "Edit" */ '@/pages/Edit'),
+)
+const Auth = React.lazy(
+  () => import(/* webpackChunkName: "Auth" */ '@/components/Auth'),
+)
 
 createRoot(container).render(
   <WagmiProvider config={wagmiConfig}>
