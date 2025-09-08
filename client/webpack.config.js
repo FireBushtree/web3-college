@@ -2,6 +2,7 @@ import path from 'node:path'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import MiniCssExtractPlugin from 'mini-css-extract-plugin'
 import TerserPlugin from 'terser-webpack-plugin'
+import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer'
 
 const __dirname = path.resolve('./')
 
@@ -62,6 +63,12 @@ export default (env, argv) => {
       }),
       new MiniCssExtractPlugin({
         filename: 'styles/[name].[contenthash].css',
+      }),
+      new BundleAnalyzerPlugin({
+        analyzerMode: 'server', // 可选: 'server', 'static', 'json'
+        analyzerHost: '127.0.0.1',
+        analyzerPort: 8888,
+        openAnalyzer: true, // 自动打开浏览器
       }),
     ],
     resolve: {
