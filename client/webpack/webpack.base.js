@@ -5,7 +5,6 @@ import WebpackBar from 'webpackbar'
 const __dirname = path.resolve('./')
 
 export default {
-  cache: false,
   entry: './src/main.tsx',
   output: {
     publicPath: '/',

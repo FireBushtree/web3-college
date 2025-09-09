@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Prod Dapp</title>
+  <% if (htmlWebpackPlugin.options.templateParameters.isProduction) { %>
+    <!-- React 19 ESM CDN -->
+    <script type="module">
+      import React from "https://esm.sh/react@19.1.1";
+      import axios from "https://esm.sh/axios@1.11.0";
+
+      // 将模块暴露到全局，供 webpack 打包的代码使用
+      window.React = React;
+      window.axios = axios;
+    </script>
+  <% } %>
+
 </head>
 <body>
   <div id="app"></div>

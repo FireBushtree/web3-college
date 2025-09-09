@@ -6,6 +6,9 @@ const plugins = [
   new HtmlWebpackPlugin({
     template: './index.prod.html',
     filename: 'index.html',
+    templateParameters: {
+      isProduction: true,
+    },
   }),
 ]
 
@@ -22,7 +25,11 @@ if (process.env.ANALYZE) {
 
 export default {
   plugins,
-
+  cache: false,
+  externals: {
+    react: 'React',
+    axios: 'axios',
+  },
   optimization: {
     splitChunks: {
       chunks: 'all',

@@ -1,6 +1,10 @@
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 
 export default {
+  stats: 'errors-warnings',
+  cache: {
+    type: 'filesystem',
+  },
   plugins: [
     new HtmlWebpackPlugin({
       template: './index.dev.html',
@@ -9,6 +13,13 @@ export default {
   ],
 
   devServer: {
+    client: {
+      logging: 'error',
+    },
+    devMiddleware: {
+      stats: 'errors-only',
+    },
+
     historyApiFallback: {},
     port: 8080,
     hot: true,
