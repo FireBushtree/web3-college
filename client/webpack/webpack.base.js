@@ -1,5 +1,6 @@
 import path from 'node:path'
 import MiniCssExtractPlugin from 'mini-css-extract-plugin'
+import WebpackBar from 'webpackbar'
 
 const __dirname = path.resolve('./')
 
@@ -16,6 +17,9 @@ export default {
   plugins: [
     new MiniCssExtractPlugin({
       filename: 'styles/[name].[contenthash].css',
+    }),
+    new WebpackBar({
+      fancy: true,
     }),
   ],
   resolve: {
